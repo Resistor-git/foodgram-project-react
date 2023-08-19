@@ -9,12 +9,12 @@ User = get_user_model()
 # проверить что дописаны все поля и нигде нет троеточия
 
 
-CHOISES_INGRIDIENTS = [
-    ('', ''),
-    ('', ''),
-    ('', ''),
-    ('', ''),
-]
+# CHOISES_INGRIDIENTS = [
+#     ('', ''),
+#     ('', ''),
+#     ('', ''),
+#     ('', ''),
+# ]
 
 
 class Ingredient(models.Model):
