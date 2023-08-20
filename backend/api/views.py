@@ -7,9 +7,9 @@ from rest_framework import (
     serializers
 )
 
-# Create your views here.
-
-from recipes.models import Recipe
+from recipes.models import (
+    Recipe,
+)
 from api.serializers import (
     RecipeSerializer,
 )

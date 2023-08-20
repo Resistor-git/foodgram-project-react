@@ -1,13 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MinValueValidator
 
 User = get_user_model()
-
-
-# TODO
-# связи related_name
-# проверить что дописаны все поля и нигде нет троеточия
-
 
 # CHOISES_INGRIDIENTS = [
 #     ('', ''),
@@ -15,29 +10,6 @@ User = get_user_model()
 #     ('', ''),
 #     ('', ''),
 # ]
-
-
-class Ingredient(models.Model):
-    # Данные об ингредиентах должны храниться в нескольких связанных таблицах. WAT???
-    name = models.CharField(
-        max_length=60,
-        help_text='Name of the ingredient',
-        unique=True
-    )
-    quantity = models.PositiveSmallIntegerField(
-        help_text='How much of the ingredient is needed'
-    )
-    unit_of_measurement = models.CharField(
-        max_length=16,
-        help_text='Units of measurement for the ingredient'
-    )
-
-    class Meta:
-        verbose_name = 'Ingredient'
-        verbose_name_plural = 'Ingredients'
-
-    def __str__(self):
-        return self.name
 
 
 class Tag(models.Model):
@@ -63,12 +35,35 @@ class Tag(models.Model):
         return self.name
 
 
+class Ingredient(models.Model):
+    # Данные об ингредиентах должны храниться в нескольких связанных таблицах. WAT???
+    name = models.CharField(
+        max_length=60,
+        help_text='Name of the ingredient',
+        unique=True
+    )
+    # quantity = models.PositiveSmallIntegerField(
+    #     help_text='How much of the ingredient is needed'
+    # )
+    measurement_unit = models.CharField(
+        max_length=16,
+        help_text='Units of measurement for the ingredient'
+    )
+
+    class Meta:
+        verbose_name = 'Ingredient'
+        verbose_name_plural = 'Ingredients'
+
+    def __str__(self):
+        return self.name
+
+
 class Recipe(models.Model):
     name = models.CharField(
         max_length=200,
         help_text='Name of the recipe'
     )
-    description = models.TextField(
+    text = models.TextField(
         max_length=600,
         help_text='Description of the recipe'
     )
@@ -81,15 +76,20 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
+        through='RecipeIngredient',
         related_name='recipes'
     ) # ??? Множественное поле с выбором из предустановленного списка и с указанием количества и единицы измерения ??? models.CharField(max_length=16, choices=CHOISES_INGRIDIENTS)
     # То же можно сделать и на уровне сериализатора, указав для поля color тип ChoiceField и передав в параметр choices список с возможными вариантами
     tags = models.ManyToManyField(
         Tag,
         related_name='recipes'
-    )  # подумать, нужна ли промежуточная таблица; many=True? см. задание
-    time_to_cook = models.PositiveSmallIntegerField(
-        help_text='Time to cook according to the recipe'
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        help_text='Time to cook according to the recipe',
+        validators=[
+            MinValueValidator(limit_value=1,
+                              message="Cooking time can't be less than 1 minute")
+        ]
     )
 
     class Meta:
@@ -100,3 +100,26 @@ class Recipe(models.Model):
         return self.name
 
 
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE
+    )
+    amount = models.PositiveSmallIntegerField(
+        help_text='Amount of the ingredient')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
+
+
+# class Favourite(models.Model):
+#     ...
