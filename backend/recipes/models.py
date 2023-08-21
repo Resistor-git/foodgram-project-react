@@ -12,14 +12,17 @@ User = get_user_model()
 # ]
 
 
+# проверить поля на соответствие документации, например colour_code
 class Tag(models.Model):
     name = models.CharField(
         max_length=30,
         unique=True,
         help_text='Name of the tag'
     )
-    colour_code = models.CharField(
-        max_length=7
+    color = models.CharField(
+        max_length=7,
+        unique=True,
+        help_text='Color code, example: #49B64E'
     )
     slug = models.SlugField(
         max_length=30,

@@ -1,3 +1,39 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Tag, Ingredient, Recipe, RecipeIngredient
+
+# TODO добавить остальные (избранное и т.д.)
+# добавить в RecipeAdmin фильтрацию по тегам
+# на странице рецепта вывести общее число добавлений этого рецепта в избранное;
+
+
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name', 'color', 'slug')
+    list_editable = ('name', 'color', 'slug')
+
+
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name', 'measurement_unit')
+    list_editable = ('name', 'measurement_unit')
+    list_filter = ('name',)
+    search_fields = ('name',)
+    empty_value_display = '-empty-'
+
+
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name', 'author',)
+    list_editable = ('name', 'author',)
+    list_filter = ('name', 'author')
+    empty_value_display = '-empty-'
+
+
+class RecipeIngredientAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'recipe', 'ingredient', 'amount')
+    list_editable = ('recipe', 'ingredient', 'amount')
+    empty_value_display = '-empty-'
+
+
+admin.site.register(Tag, TagAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
