@@ -40,11 +40,7 @@ class Ingredient(models.Model):
     name = models.CharField(
         max_length=60,
         help_text='Name of the ingredient',
-        unique=True
     )
-    # quantity = models.PositiveSmallIntegerField(
-    #     help_text='How much of the ingredient is needed'
-    # )
     measurement_unit = models.CharField(
         max_length=16,
         help_text='Units of measurement for the ingredient'
