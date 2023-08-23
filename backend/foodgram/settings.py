@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-9(-&g)10mveh-f)5^@aq$&=#$6^wc*jwgougp&5p=&f(%#q3%o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+]
 
 
 # Application definition
@@ -86,6 +89,16 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'django'),
+#         'USER': os.getenv('POSTGRES_USER', 'django'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+#         'HOST': os.getenv('DB_HOST', ''),
+#         'PORT': os.getenv('DB_PORT', 5432)
+#     }
+# }
 
 
 # Password validation
@@ -116,6 +129,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     )
 }
+
+# DJOSER = {
+#     # https://youtu.be/lFD5uoCcvSA?t=115
+#     'SERIALIZERS': {
+#         'user_create': 'api.serializers.UserCreateSerializer',
+#         'user': 'api.serializers.UserCreateSerializer',  # или 'current_user' ? или отдельный создать сериализатор для retrieve?
+#     }
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

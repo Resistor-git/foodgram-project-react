@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 
 User = get_user_model()
 
@@ -15,18 +15,19 @@ User = get_user_model()
 # проверить поля на соответствие документации, например colour_code
 class Tag(models.Model):
     name = models.CharField(
-        max_length=30,
+        max_length=200,
         unique=True,
         help_text='Name of the tag'
     )
     color = models.CharField(
         max_length=7,
         unique=True,
-        help_text='Color code, example: #49B64E'
+        help_text='Color code in HEX, example: #49B64E'
     )
     slug = models.SlugField(
-        max_length=30,
+        max_length=200,
         unique=True,
+        validators=[RegexValidator('^[-a-zA-Z0-9_]+$')],
         help_text='Slug for the tag'
     )
 
@@ -41,11 +42,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     # Данные об ингредиентах должны храниться в нескольких связанных таблицах. WAT???
     name = models.CharField(
-        max_length=60,
+        max_length=200,
         help_text='Name of the ingredient',
     )
     measurement_unit = models.CharField(
-        max_length=16,
+        max_length=200,
         help_text='Units of measurement for the ingredient'
     )
 
