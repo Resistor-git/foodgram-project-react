@@ -1,7 +1,31 @@
 version: '3.3'
-services:
 
-  frontend:
+volumes:
+  foodgram_pg_data:
+  foodgram_static:
+  foodgram_media:
+
+services:
+  foodgram_db:
+    image: postgres:13
+    env_file: ../.env
+    volumes:
+      - foodgram_pg_data:/var/lib/postgresql/data
+  foodgram_backend:
+    build: ../backend/
+    env_file: ../.env
+    volumes:
+      - foodgram_static:/backend_static/
+      - foodgram_media:/app/media/
+    depends_on:
+      - foodgram_db
+#  foodgram_frontend:
+#    env_file: ../.env
+#    build: ./frontend/
+#    command: cp -r /app/build/. /static/
+#    volumes:
+#      - foodgram_static:/static
+  foodgram_frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
