@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from api.views import RecipeViewSet, TagViewSet
+from api.views import RecipeViewSet, TagViewSet, IngredientViewSet
 
 app_name = 'api'
 
@@ -18,7 +18,8 @@ app_name = 'api'
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet, basename='recipes')
 router.register('tags', TagViewSet, basename='tags')
-# router.register('users', CustomUserViewSet)
+router.register('ingredients', IngredientViewSet, basename='ingredients')
+# router.register('users', CustomUserViewSet)  # на вэбинаре не было такого эндпоинта
 
 urlpatterns = [
     path('', include(router.urls)),
