@@ -126,8 +126,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        # 'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
@@ -139,7 +139,7 @@ DJOSER = {
         # 'user_create': 'api.serializers.UserCreateSerializer',
         # 'user': 'api.serializers.UserCreateSerializer',  # или 'current_user' ? или отдельный создать сериализатор для retrieve?
         'user_create': 'api.serializers.CustomUserCreateSerializer',
-        'user': 'api.serializers.CustomUserCreateSerializer',
+        'user': 'api.serializers.CustomUserRetrieveSerializer',
     },
     'LOGIN_FIELD': 'email',
 }
