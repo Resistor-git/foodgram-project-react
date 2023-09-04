@@ -45,7 +45,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 class CustomUserRetrieveSerializer(UserSerializer):
     """Shows the info about the user."""
-    # is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -55,12 +55,12 @@ class CustomUserRetrieveSerializer(UserSerializer):
             'username',
             'first_name',
             'last_name',
-            # 'is_subscribed',
+            'is_subscribed',
         )
 
     def get_is_subscribed(self, obj):
         current_user = self.context.get('request').user
-        return Subscription.filter(user=current_user, author=obj).exists()
+        return Subscription.objects.filter(user=current_user, author=obj).exists()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -190,12 +190,12 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             'username',
             'first_name',
             'last_name',
-            # 'is_subscribed',
+            'is_subscribed',
             'recipes',
             'recipes_count'
         )
         read_only_fields = ('email', 'username', 'first_name', 'last_name',
-                            # 'is_subscribed'
+                            'is_subscribed'
                             )
 
     def get_recipes(self, obj):
