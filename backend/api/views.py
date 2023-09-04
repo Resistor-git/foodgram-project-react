@@ -26,6 +26,7 @@ from api.serializers import (
     TagSerializer,
     # SubscriptionCreateSerializer,
     SubscriptionSerializer,
+    CustomUserCreateSerializer,
     CustomUserRetrieveSerializer,
 )
 from api.permissions import (
@@ -41,9 +42,14 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserRetrieveSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CustomUserCreateSerializer
+        return CustomUserRetrieveSerializer
+
     @action(
-        detail=True,
         methods=['POST', 'DELETE'],
+        detail=True,
     )
     def subscribe(self, request, id):  # а id сюда как прилетает? похоже, так на фронте
         user = request.user
@@ -58,7 +64,18 @@ class CustomUserViewSet(UserViewSet):
             #     return Response(serializer.data, status=status.HTTP_201_CREATED)
             if User.objects.filter(id=id).exists():  # не факт, что срабатывает
                 Subscription.objects.create(user=user, author=author)
-                return Response(status=status.HTTP_201_CREATED)
+                # serializer = SubscriptionSerializer(
+                #     author, data=request.data, context={'reqest': request}
+                # )
+                serializer = SubscriptionSerializer(
+                    author,
+                    data=request.data,
+                    context={request: 'request'}
+                )
+                serializer.is_valid(raise_exception=True)
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
             if Subscription.objects.filter(user=user, author=author).exists():
                 Subscription.objects.get(user=user, author=author).delete()
@@ -66,6 +83,12 @@ class CustomUserViewSet(UserViewSet):
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    # @action(
+    #     methods=['GET'],  # или не надо это здесь?
+    #     detail=False,
+    # )
+    # def subscription_author_info(self, request):
+    #     ...
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """CRUD for recipes"""

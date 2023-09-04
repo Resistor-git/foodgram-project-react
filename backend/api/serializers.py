@@ -157,6 +157,26 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     #     )
 
 
+class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
+    # author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
+    # ingredients = RecipeIngredientSerializer(many=True, read_only=True) # хз правильно ли эту модель использовать, нужно количество ингридиентов
+    # tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали
+    image = Base64ImageField()
+    # is_favorited = serializers.SerializerMethodField(read_only=True)  # написать метод
+    # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+    # def get_ingredients(self, recipe):
+    #     ingredients = recipe.ingredients.values(
+    #         'id',
+    #         'name',
+    #         'measurement_unit',
+    #     )
+
+
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -257,6 +277,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(CustomUserRetrieveSerializer):
+    """Provides information about the author"""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -271,16 +292,19 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             # 'is_subscribed',
             'recipes',
             'recipes_count'
-            )
+        )
+        read_only_fields = ('email', 'username', 'first_name', 'last_name')
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
-        # queryset = Recipe.objects.filter(author=obj)
+        request = self.context.get('request')  # поему-то всегда None - НЕ РАБОТАЕТ
         recipes = Recipe.objects.filter(author=obj)
-        recipes_limit = request.GET.get('recipes_limit')
-        if recipes_limit:
-            recipes = recipes[:int(recipes_limit)]
-        return RecipeListRetrieveSerializer(recipes, many=True)
+        # recipes_limit = request.GET.get('recipes_limit', 1)  # НЕ РАБОТАЕТ
+        # # recipes_limit = request.query_params.get('recipes_limit')
+        # if recipes_limit:  # НЕ РАБОТАЕТ
+        #     recipes = recipes[:int(recipes_limit)]  # НЕ РАБОТАЕТ
+        #     # recipes = recipes[99]
+        #     # recipes = Recipe.objects.filter(author=obj)[:int(recipes_limit)]
+        return RecipeShortListRetrieveSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
