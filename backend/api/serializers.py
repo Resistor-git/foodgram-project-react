@@ -59,6 +59,8 @@ class CustomUserRetrieveSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        if not self.context.get('request').user.is_authenticated:
+            return False
         current_user = self.context.get('request').user
         return Subscription.objects.filter(user=current_user, author=obj).exists()
 
@@ -194,20 +196,16 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             'recipes',
             'recipes_count'
         )
-        read_only_fields = ('email', 'username', 'first_name', 'last_name',
-                            'is_subscribed'
-                            )
+        read_only_fields = ('email', 'username', 'first_name',
+                            'last_name', 'is_subscribed')
 
     def get_recipes(self, obj):
-        request = self.context.get('request')  # поему-то всегда None - НЕ РАБОТАЕТ
+        request = self.context.get('request')
         recipes = Recipe.objects.filter(author=obj)
-        # recipes_limit = request.GET.get('recipes_limit', 1)  # НЕ РАБОТАЕТ
-        # # recipes_limit = request.query_params.get('recipes_limit')
-        # if recipes_limit:  # НЕ РАБОТАЕТ
-        #     recipes = recipes[:int(recipes_limit)]  # НЕ РАБОТАЕТ
-        #     # recipes = recipes[99]
-        #     # recipes = Recipe.objects.filter(author=obj)[:int(recipes_limit)]
-        return RecipeShortListRetrieveSerializer(recipes, many=True).data
+        recipes_limit = request.GET.get('recipes_limit', 1)  #todo убрать дефолтное магическое число
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+            return RecipeShortListRetrieveSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()

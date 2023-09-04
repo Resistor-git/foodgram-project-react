@@ -50,7 +50,6 @@ class CustomUserViewSet(UserViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
-        # serializer_class=SubscriptionSerializer,
     )
     def subscribe(self, request, id):  # id сюда как прилетает?
         user = request.user
@@ -60,7 +59,6 @@ class CustomUserViewSet(UserViewSet):
             if User.objects.filter(id=id).exists():  # не факт, что срабатывает
                 Subscription.objects.create(user=user, author=author)
                 serializer = SubscriptionSerializer(
-                # serializer = self.get_serializer(
                     author,
                     data=request.data,
                     context={'request': request}
@@ -75,13 +73,6 @@ class CustomUserViewSet(UserViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    # @action(
-    #     methods=['GET'],  # или не надо это здесь?
-    #     detail=False,
-    # )
-    # def subscription_author_info(self, request):
-    #     ...
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
