@@ -80,6 +80,13 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name', 'color', 'slug')
+
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     # это чтобы можно было добавить к рецепту ингридиенты и их количество, хз правильно ли
     # id брать ингридиента или связи RecipeIngredient?
@@ -146,7 +153,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
     ingredients = RecipeIngredientSerializer(many=True, read_only=True) # хз правильно ли эту модель использовать, нужно количество ингридиентов
-    tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали
+    # tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали
+    tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
     # is_favorited = serializers.SerializerMethodField(read_only=True)  # написать метод
     # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
@@ -170,13 +178,6 @@ class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-
-
-class TagSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Tag
-        fields = ('id', 'name', 'color', 'slug')
 
 
 class SubscriptionSerializer(CustomUserRetrieveSerializer):
