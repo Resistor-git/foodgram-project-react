@@ -50,27 +50,20 @@ class CustomUserViewSet(UserViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
+        # serializer_class=SubscriptionSerializer,
     )
-    def subscribe(self, request, id):  # а id сюда как прилетает? похоже, так на фронте
+    def subscribe(self, request, id):  # id сюда как прилетает?
         user = request.user
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
-            # serializer = SubscriptionSerializer(
-            #     user=user, author=author, context={'request': request}  # здесь ломается
-            # )
-            # if serializer.is_valid(raise_exception=True):
-            #     Subscription.objects.create(user=user, author=author)
-            #     return Response(serializer.data, status=status.HTTP_201_CREATED)
             if User.objects.filter(id=id).exists():  # не факт, что срабатывает
                 Subscription.objects.create(user=user, author=author)
-                # serializer = SubscriptionSerializer(
-                #     author, data=request.data, context={'reqest': request}
-                # )
                 serializer = SubscriptionSerializer(
+                # serializer = self.get_serializer(
                     author,
                     data=request.data,
-                    context={request: 'request'}
+                    context={'request': request}
                 )
                 serializer.is_valid(raise_exception=True)
                 return Response(data=serializer.data, status=status.HTTP_201_CREATED)
@@ -89,6 +82,7 @@ class CustomUserViewSet(UserViewSet):
     # )
     # def subscription_author_info(self, request):
     #     ...
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """CRUD for recipes"""

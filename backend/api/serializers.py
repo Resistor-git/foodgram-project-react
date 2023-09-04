@@ -45,6 +45,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 class CustomUserRetrieveSerializer(UserSerializer):
     """Shows the info about the user."""
+    # is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -56,6 +57,10 @@ class CustomUserRetrieveSerializer(UserSerializer):
             'last_name',
             # 'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        current_user = self.context.get('request').user
+        return Subscription.filter(user=current_user, author=obj).exists()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -158,23 +163,11 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
 
 
 class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
-    # author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
-    # ingredients = RecipeIngredientSerializer(many=True, read_only=True) # хз правильно ли эту модель использовать, нужно количество ингридиентов
-    # tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали
     image = Base64ImageField()
-    # is_favorited = serializers.SerializerMethodField(read_only=True)  # написать метод
-    # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-
-    # def get_ingredients(self, recipe):
-    #     ingredients = recipe.ingredients.values(
-    #         'id',
-    #         'name',
-    #         'measurement_unit',
-    #     )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -184,100 +177,8 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'color', 'slug')
 
 
-# class SubscriptionCreateSerializer(serializers.ModelSerializer):  # надо ли отдельно на создание и чтение?
-#     # копипаста из api_final_yatube; following заменён на author
-#     # TODO в выдачу нужно добавить рецепты от тех на кого подписки
-#     # почему я тогда использовал SlugRelatedField?
-#     # user = SlugRelatedField(
-#     #     slug_field='username',
-#     #     default=serializers.CurrentUserDefault(),
-#     #     read_only=True
-#     # )
-#     # author = SlugRelatedField(slug_field='username',
-#     #                              queryset=CustomUser.objects.all())  # или просто User?
-#
-#     user = serializers.HiddenField(  # или PrimaryKeyRelatedField ?
-#         default=serializers.CurrentUserDefault(),
-#         # read_only=True,  # попробовать убрать если не работает
-#         # queryset=CustomUser.objects.all()  # попробовать добавить если не работает
-#     )
-#
-#     class Meta:
-#         model = Subscription
-#         fields = ('id', 'user', 'author')
-#         validators = [
-#             UniqueTogetherValidator(
-#                 queryset=Subscription.objects.all(),
-#                 fields=('user', 'author')
-#             )
-#         ]
-#
-#     def validate(self, data):
-#         if self.context['request'].user == data.get('author'):
-#             raise serializers.ValidationError("Can't subscribe to yourself")
-#         return data
-
-
-# class SubscriptionCreateSerializer(serializers.ModelSerializer):  # надо ли отдельно на создание и чтение?
-#     user = serializers.HiddenField(  # или PrimaryKeyRelatedField ?
-#         default=serializers.CurrentUserDefault(),
-#         # read_only=True,  # попробовать убрать если не работает
-#         # queryset=CustomUser.objects.all()  # попробовать добавить если не работает
-#     )
-#     author = serializers.PrimaryKeyRelatedField()
-#
-#     class Meta:
-#
-#         fields = ('user', 'author')
-#         validators = [
-#             UniqueTogetherValidator(
-#                 queryset=Subscription.objects.all(),
-#                 fields=('user', 'author')
-#             )
-#         ]
-#
-#     def validate(self, data):
-#         if self.context['request'].user == data.get('author'):
-#             raise serializers.ValidationError("Can't subscribe to yourself")
-#         return data
-#
-#
-# class SubscriptionRetrieveSerializer(serializers.ModelSerializer):  # надо ли отдельно на создание и чтение?
-#
-#     user = serializers.HiddenField(  # или PrimaryKeyRelatedField ?
-#         default=serializers.CurrentUserDefault(),
-#         # read_only=True,  # попробовать убрать если не работает
-#         # queryset=CustomUser.objects.all()  # попробовать добавить если не работает
-#     )
-#
-#     class Meta:
-#         # ??? наследование нужно Meta(UserSerializer.Meta) и убрать модель тогда ???
-#         # https://app.pachca.com/chats/3891156?chat_query=%D0%BF%D0%BE%D0%B4%D0%BF%D0%B8%D1%81%D0%BA%D0%B8&thread_id=1619066
-#         model = Subscription
-#         fields = ('id',
-#                   'email',
-#                   'username',
-#                   'first_name',
-#                   'last_name',
-#                   'is_subscribed',
-#                   'recipes',
-#                   'recipes_count',
-#         )
-#         # validators = [
-#         #     UniqueTogetherValidator(
-#         #         queryset=Subscription.objects.all(),
-#         #         fields=('user', 'author')
-#         #     )
-#         # ]
-#
-#     def validate(self, data):
-#         if self.context['request'].user == data.get('author'):
-#             raise serializers.ValidationError("Can't subscribe to yourself")
-#         return data
-
-
 class SubscriptionSerializer(CustomUserRetrieveSerializer):
-    """Provides information about the author"""
+    """Provides information about the author and their recipes"""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -293,7 +194,9 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             'recipes',
             'recipes_count'
         )
-        read_only_fields = ('email', 'username', 'first_name', 'last_name')
+        read_only_fields = ('email', 'username', 'first_name', 'last_name',
+                            # 'is_subscribed'
+                            )
 
     def get_recipes(self, obj):
         request = self.context.get('request')  # поему-то всегда None - НЕ РАБОТАЕТ
