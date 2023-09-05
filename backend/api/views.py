@@ -122,6 +122,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Get a single or all ingredients. Readolny."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -130,6 +131,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminOrReadOnly]  # ??? или readonly? или allowany? или дефолтный?
+    pagination_class = None
 
 
 # class SubscriptionViewSet(viewsets.ModelViewSet):
