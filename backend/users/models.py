@@ -29,13 +29,13 @@ class Subscription(models.Model):
     user = models.ForeignKey(
         CustomUser,  # ? или через User = get_user_model()
         on_delete=models.CASCADE,
-        related_name='subscriptions',
+        related_name='follower',  # subscriptions
         verbose_name='Follower (кто подписан)'
     )
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='followers',
+        related_name='following',  # followers
         verbose_name='Content author (на кого подписан)'
     )
 
@@ -46,3 +46,6 @@ class Subscription(models.Model):
         ]
         verbose_name = 'Subscription'
         verbose_name_plural = 'Subscriptions'
+
+    def __str__(self):
+        return f'{self.user} is subscribed to {self.author}'

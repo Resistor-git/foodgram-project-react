@@ -18,6 +18,7 @@ from recipes.models import (
 )
 from users.models import (
     Subscription,
+    CustomUser,
 )
 from api.serializers import (
     RecipeListRetrieveSerializer,
@@ -50,13 +51,15 @@ class CustomUserViewSet(UserViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
+        permission_classes=[permissions.IsAuthenticated]
+        # удостовериться, что другой не может изменить подписку
     )
     def subscribe(self, request, id):  # id сюда как прилетает?
         user = request.user
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
-            if User.objects.filter(id=id).exists():  # не факт, что срабатывает
+            if User.objects.filter(id=id).exists() and user != author:  # не факт, что срабатывает
                 Subscription.objects.create(user=user, author=author)
                 serializer = SubscriptionSerializer(
                     author,
@@ -73,6 +76,30 @@ class CustomUserViewSet(UserViewSet):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def subscriptions(self, request):
+        user = request.user
+        authors = CustomUser.objects.filter(following__user=user)
+        page = self.paginate_queryset(authors)
+        if page:
+            serializer = SubscriptionSerializer(
+                page,
+                many=True,
+                context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+        else:
+            serializer = SubscriptionSerializer(
+                authors,
+                many=True,
+                context={'request': request}
+            )
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
