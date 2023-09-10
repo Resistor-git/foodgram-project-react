@@ -146,7 +146,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 ### хороший был бы код, если бы работал
 class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = IngredientAmountSerializer(many=True)  # правильно ли этот сериализатор использовать или RecipeIngredient?
-    tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали 1:19
+    # tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали 1:19 #  этой строкой в validated data нет тегов
     image = Base64ImageField()
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -156,7 +156,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   'ingredients', 'tags', 'cooking_time',)
 
     def create(self, validated_data):
+        print(f'!!!attempt to create recipe!!!', flush=True)
+        print(f'!!!validated data: {validated_data}', flush=True)
         ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
         print(f'!!!ingredients: {ingredients}!!!', flush=True)
         print('!!!validated_data after pop:', validated_data, flush=True)
         # recipe_created = super().create(validated_data)
@@ -168,6 +171,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         #     RecipeIngredient.objects.create(
         #         recipe=recipe_created, ingredient=ingredient_obj, amount=1
         #     )
+        print('!!!add_ingredients отработал!!!', flush=True)
+        self.add_tags(recipe_created, tags)
         return recipe_created
 
     def add_ingredients(self, recipe, ingredients):
@@ -181,6 +186,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 amount=ingredient['amount'],
             ) for ingredient in ingredients
         )
+
+    def add_tags(self, recipe, tags):
+        recipe.tags.set(tags)
+
+    def to_representation(self, instance):
+        context = {'request': self.context.get('request')}
+        print('!!!!', instance, flush=True)
+        return RecipeListRetrieveSerializer(instance, context=context).data
 
         # for ingredient in ingredients:
         #     ingredient = Ingredient.objects.get(pk=ingredient['id'])
@@ -268,17 +281,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
-    ingredients = RecipeIngredientSerializer(many=True, read_only=True) # хз правильно ли эту модель использовать, нужно количество ингридиентов
+    # ingredients = RecipeIngredientSerializer(many=True, read_only=True) # хз правильно ли эту модель использовать, нужно количество ингридиентов
     # tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали
     tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
-    # is_favorited = serializers.SerializerMethodField(read_only=True)  # написать метод
+    is_favorited = serializers.SerializerMethodField(read_only=True)  # написать метод
     # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'text', 'author', 'image',
-                  'ingredients', 'tags', 'cooking_time',)
+                  # 'ingredients',
+                  'tags', 'cooking_time', 'is_favorited')
 
     def get_is_favorited(self, obj):
         if not self.context.get('request').user.is_authenticated:

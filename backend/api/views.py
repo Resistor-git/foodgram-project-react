@@ -107,7 +107,7 @@ class CustomUserViewSet(UserViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """CRUD for recipes"""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeListRetrieveSerializer
+    # serializer_class = RecipeListRetrieveSerializer
     permission_classes = [IsAuthorOrReadOnly]
 
     def get_serializer_class(self):
@@ -129,7 +129,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
         serializer_class=FavoriteSerializer
     )
-    def favorite(self, request, pk):  # попробовать id вместо pk
+    def favorite(self, request, pk):
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
@@ -149,7 +149,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 Favorite.objects.get(user=user, recipe=recipe).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response({'errors': 'The recipe does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
