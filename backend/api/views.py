@@ -135,14 +135,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             if recipe:
                 serializer = FavoriteSerializer(
-                    # user=user,
-                    # recipe=recipe,
                     data={'recipe': recipe.pk},
                     context={'request': request}
-                )  ## после проверки работоспособности заставить возвращать короткую инфу о рецепте
-                # serializer = FavoriteSerializer(recipe)
+                )
                 serializer.is_valid(raise_exception=True)
-                Favorite.objects.create(user=user, recipe=recipe)
+                if serializer.is_valid:  # два раза проверка?
+                    Favorite.objects.create(user=user, recipe=recipe)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
