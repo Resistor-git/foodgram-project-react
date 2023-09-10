@@ -1,7 +1,9 @@
 import base64
+import sys
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -16,6 +18,7 @@ from recipes.models import (
     Ingredient,
     Tag,
     RecipeIngredient,
+    Favorite,
 )
 
 
@@ -87,23 +90,65 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'color', 'slug')
 
 
+# почему у меня тут вообще такие поля???
+# class RecipeIngredientSerializer(serializers.ModelSerializer):
+#     # это чтобы можно было добавить к рецепту ингридиенты и их количество, хз правильно ли
+#     # id брать ингридиента или связи RecipeIngredient?
+#     # id = serializers.PrimaryKeyRelatedField(source='ingredient.id', read_only=True)
+#     # name = serializers.CharField(source='ingredient.name', read_only=True)  # в RecipeIngredient есть поле ingredient, оно ссылается на модель Ingredient у которой есть name
+#     # measurement_unit = serializers.CharField(source='ingredient.measurement_unit', read_only=True)
+#     # amount = serializers.IntegerField()
+#     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+#     # id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all().values('id'))  # ?? или RecipeIngredient
+#     name = serializers.CharField(source='ingredient.name', read_only=True)  # в RecipeIngredient есть поле ingredient, оно ссылается на модель Ingredient у которой есть name
+#     measurement_unit = serializers.CharField(source='ingredient.measurement_unit', read_only=True)
+#     amount = serializers.IntegerField()
+#
+#     class Meta:
+#         model = RecipeIngredient
+#         fields = ('id', 'name', 'measurement_unit', 'amount')
+
+# этот для создания пробовал
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    # это чтобы можно было добавить к рецепту ингридиенты и их количество, хз правильно ли
-    # id брать ингридиента или связи RecipeIngredient?
-    # id = serializers.PrimaryKeyRelatedField(source='ingredient.id')
-    name = serializers.CharField(source='ingredient.name')  # в RecipeIngredient есть поле ingredient, оно ссылается на модель Ingredient у которой есть name
-    measurement_unit = serializers.CharField(source='ingredient.measurement_unit')
-    # amount пишут через какой-то F'чотатам__amount' или типа того. что за F?
+    # ХЗ ХЗ ХЗ
+    # это чтобы можно было добавить к рецепту ингридиенты и их количество
+    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
+    # ingredient = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    ingredient = IngredientSerializer
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('recipe', 'ingredient', 'amount')
 
 
+class IngredientAmountSerializer(serializers.ModelSerializer):
+    # id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all().values_list('id', flat=True))  # id ингредиента
+    # id = serializers.PrimaryKeyRelatedField(source='ingredient.id', read_only=True)
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
+
+
+
+# class RecipeIngredientAddSerializer(serializers.ModelSerializer):
+#     id = serializers.PrimaryKeyRelatedField(
+#         source='ingredient.id',
+#         queryset=Ingredient.objects.all()
+#     )
+#
+#     class Meta:
+#         model = RecipeIngredient
+#         fields = ('id', 'amount')
+
+
+### хороший был бы код, если бы работал
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientSerializer(many=True, read_only=True)  # хз правильно ли эту модель использовать
+    ingredients = IngredientAmountSerializer(many=True)  # правильно ли этот сериализатор использовать или RecipeIngredient?
     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали 1:19
     image = Base64ImageField()
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Recipe
@@ -112,42 +157,113 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
-        recipe_created = super().create(validated_data)
-        self.get_ingredients(recipe_created, ingredients)
+        print(f'!!!ingredients: {ingredients}!!!', flush=True)
+        print('!!!validated_data after pop:', validated_data, flush=True)
+        # recipe_created = super().create(validated_data)
+        recipe_created = Recipe.objects.create(**validated_data)
+        print('!!!recipe_created отработал!!!', flush=True)
+        self.add_ingredients(recipe_created, ingredients)
+        # for ingredient in ingredients:
+        #     ingredient_obj = Ingredient.objects.get(pk=1)  # хардкод
+        #     RecipeIngredient.objects.create(
+        #         recipe=recipe_created, ingredient=ingredient_obj, amount=1
+        #     )
         return recipe_created
 
-    def get_ingredients(self, recipe, ingredients):
+    def add_ingredients(self, recipe, ingredients):
         """Used by create method to add ingredients and amounts to recipe"""
-        # RecipeIngredient.objects.bulk_create(
-        #     RecipeIngredient(
-        #         recipe=recipe,
-        #         ingredient=Ingredient.objects.get(pk=ingredient['id']),
-        #         amount=ingredient['amount']
-        #     ) for ingredient in ingredients
-        # )
-        for ingredient in ingredients:
-            RecipeIngredient.objects.bulk_create(
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient=Ingredient.objects.get(pk=ingredient['id']),
-                    amount=ingredient['amount']
-                )
-            )
+        print('!!!recipe:', recipe, flush=True)
+        print('!!!ingredients(again):', ingredients, flush=True)
+        RecipeIngredient.objects.bulk_create(
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=Ingredient.objects.get(id=ingredient['id']),
+                amount=ingredient['amount'],
+            ) for ingredient in ingredients
+        )
 
-    # def create(self, validated_data):  # практически копипаст из вебинара 1:20
-    #     # при создании рецепта создаётся запись связывающая рецепт и ингредиенты
-    #     ingredients = validated_data.pop('ingredients')
-    #     for ingredient in ingredients:
-    #         RecipeIngredient(recipe=self.instance, ingredient=ingredient['id'], amount=ingredient['amount'])  # хз
-    #     super().create(validated_data)
-    #
-    # def update(self, instance, validated_data):
-    #     # ???
-    #     self.ingredients.all().delete()
-    #     ingredients = validated_data.pop('ingredients')
-    #     for ingredient in ingredients:
-    #         RecipeIngredient(recipe=self.instance, ingredient=ingredient['id'], amount=ingredient['amount'])  # хз
-    #     super().validated_data()
+        # for ingredient in ingredients:
+        #     ingredient = Ingredient.objects.get(pk=ingredient['id'])
+        #     amount = ingredient['amount']
+        #     RecipeIngredient.objects.create(
+        #         recipe=recipe, ingredient=ingredient, amount=amount
+        #     )
+
+
+# class RecipeCreateSerializer(serializers.ModelSerializer):
+#     ingredients = IngredientAmountSerializer(many=True)  # правильно ли эту модель использовать?
+#     # ingredients = RecipeIngredientAddSerializer(many=True)
+#     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали 1:19
+#     image = Base64ImageField()
+#     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+#     # author = CustomUserRetrieveSerializer
+#     # author = serializers.PrimaryKeyRelatedField(default=serializers.CurrentUserDefault(), read_only=True)
+#
+#     class Meta:
+#         model = Recipe
+#         fields = ('id', 'name', 'text', 'author', 'image',
+#                   'ingredients', 'tags', 'cooking_time',)
+#
+#     # def create(self, validated_data):
+#     #     ingredients = validated_data.pop('ingredients')
+#     #     # recipe_created = super().create(validated_data)
+#     #     recipe_created = Recipe.objects.create(**validated_data)
+#     #     self.add_ingredients(recipe_created, ingredients)
+#     #     # for ingredient in ingredients:
+#     #     #     ingredient_obj = Ingredient.objects.get(pk=1)  # хардкод
+#     #     #     RecipeIngredient.objects.create(
+#     #     #         recipe=recipe_created, ingredient=ingredient_obj, amount=1
+#     #     #     )
+#     #     return recipe_created
+#
+#     ## очередная попытка https://app.pachca.com/chats/3891156?thread_id=1796376
+#
+#     def to_representation(self, instance):
+#         request = self.context.get('request')
+#         context = {'request': request}
+#         return RecipeListRetrieveSerializer(instance, context=context).data
+#
+#     def create_bulk(self, recipe, ingredients_data):
+#         RecipeIngredient.objects.bulk_create(
+#             [
+#                 RecipeIngredient(
+#                     ingredient=Ingredient.objects.get(id=ingredient['id']),
+#                     recipe=recipe,
+#                     amount=ingredient['amount']
+#                     # amount=F('amount')
+#                 ) for ingredient in ingredients_data
+#             ]
+#         )
+#
+#     def create(self, validated_data):
+#         request = self.context.get('request')
+#         ingredients_data = validated_data.pop('ingredients')
+#         recipe = Recipe.objects.create(**validated_data)
+#         recipe.save()
+#         self.create_bulk(recipe, ingredients_data)
+#         return recipe
+
+
+# создаёт... но без ингредиентов...
+# class RecipeCreateSerializer(serializers.ModelSerializer):
+#     ingredients = IngredientAmountSerializer(many=True, read_only=True)  # правильно ли эту модель использовать?
+#     # ingredients = RecipeIngredientAddSerializer(many=True)
+#     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  # так на вебинаре советовали 1:19
+#     image = Base64ImageField()
+#     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+#     # author = CustomUserRetrieveSerializer
+#     # author = serializers.PrimaryKeyRelatedField(default=serializers.CurrentUserDefault(), read_only=True)
+#
+#     class Meta:
+#         model = Recipe
+#         fields = ('id', 'name', 'text', 'author', 'image',
+#                   'ingredients', 'tags', 'cooking_time',)
+#
+#     def get_ingredients(self, recipe):
+#         ingredients = recipe.ingredients.values(
+#             'id', 'name', 'measurement_unit', amount=F('ingredient_recipe__amount')
+#         )
+#         return ingredients
 
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
@@ -162,14 +278,39 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'text', 'author', 'image',
-                  'ingredients', 'tags', 'cooking_time')
+                  'ingredients', 'tags', 'cooking_time',)
 
+    def get_is_favorited(self, obj):
+        if not self.context.get('request').user.is_authenticated:
+            return False
+        current_user = self.context.get('request').user
+        return Favorite.objects.filter(user=current_user, recipe=obj).exists()
     # def get_ingredients(self, recipe):
     #     ingredients = recipe.ingredients.values(
     #         'id',
     #         'name',
     #         'measurement_unit',
     #     )
+
+
+# class RecipeCreateSerializer(RecipeListRetrieveSerializer):
+#     ingredients = RecipeIngredientSerializer(many=True)
+#     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+#     image = Base64ImageField()
+#     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+#
+#     def create(self, validated_data):
+#         # author = self.context['request'].user
+#         ingredients_data = validated_data.pop('ingredients')
+#         recipe = Recipe.objects.create(**validated_data)
+#         ingredients_list = []
+#         for ingredient_data in ingredients_data:
+#             ingredient = Ingredient.objects.get(id=ingredient_data['id'])
+#             amount = ingredient_data['amount']
+#             recipe_ingredient = RecipeIngredient(recipe=recipe, ingredient=ingredient, amount=amount)
+#             ingredients_list.append(recipe_ingredient)
+#         RecipeIngredient.objects.bulk_create(ingredients_list)
+#         return recipe
 
 
 class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
@@ -210,3 +351,17 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
+
+
+# ???? как урл прописать?
+# ??? через action сделать?
+class FavoriteSerializer(serializers.ModelSerializer):
+    # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
+
+    class Meta:
+        model = Favorite
+        fields = ('id', 'user', 'recipe')
+
+    # def create(self, validated_data):
+    #     return Favorite.objects.create(**validated_data)

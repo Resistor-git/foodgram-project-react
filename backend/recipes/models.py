@@ -40,7 +40,6 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    # Данные об ингредиентах должны храниться в нескольких связанных таблицах. WAT???
     name = models.CharField(
         max_length=200,
         help_text='Name of the ingredient',
@@ -122,5 +121,25 @@ class RecipeIngredient(models.Model):
         ]
 
 
-# class Favourite(models.Model):
-#     ...
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favored',  # subscriptions
+        verbose_name='User who favored a recipe'
+    )
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name='Favorite recipes of a user'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite_recipe'
+            )
+        ]

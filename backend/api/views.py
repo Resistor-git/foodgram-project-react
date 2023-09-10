@@ -6,7 +6,8 @@ from rest_framework import (
     permissions,
     # filters,
     status,
-    serializers
+    serializers,
+    mixins
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,6 +16,7 @@ from recipes.models import (
     Recipe,
     Ingredient,
     Tag,
+    Favorite,
 )
 from users.models import (
     Subscription,
@@ -29,6 +31,7 @@ from api.serializers import (
     SubscriptionSerializer,
     CustomUserCreateSerializer,
     CustomUserRetrieveSerializer,
+    FavoriteSerializer,
 )
 from api.permissions import (
     IsAuthorOrReadOnly,
@@ -54,7 +57,7 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated]
         # удостовериться, что другой не может изменить подписку
     )
-    def subscribe(self, request, id):  # id сюда как прилетает?
+    def subscribe(self, request, id):  # id сюда как прилетает? - вроде как из реквеста (а в нём из url)
         user = request.user
         author = get_object_or_404(User, id=id)
 
@@ -113,9 +116,41 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeListRetrieveSerializer
         return RecipeCreateSerializer
 
+    # def get_serializer_context(self):
+    #     context = super().get_serializer_context()
+    #     context.update({"request": self.request})
+    #     return context
+
     def perform_create(self, serializer):
-        # не уверен, что здесь это писать, возможно нужно в create сериализатора засунуть
         serializer.save(author=self.request.user)
+
+    @action(
+        methods=['POST', 'DELETE'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def favorite(self, request, pk):  # попробовать id вместо pk
+        user = self.request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        if request.method == 'POST':
+            if recipe:
+                Favorite.objects.create(user=user, recipe=recipe)
+                serializer = FavoriteSerializer(
+                    user=user,
+                    rcipe=recipe,
+                    # data=request.data,
+                    # context={'request': request}
+                )  ## после проверки работоспособности заставить возвращать короткую инфу о рецепте
+                serializer.is_valid(raise_exception=True)
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'DELETE':
+            if Favorite.objects.filter(user=user, recipe=recipe).exists():
+                Favorite.objects.get(user=user, recipe=recipe).delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -134,7 +169,9 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-# class SubscriptionViewSet(viewsets.ModelViewSet):
-#     queryset = Subscription.objects.all()
-#     serializer_class = SubscriptionCreateSerializer  # заменить на чтение?
-#     permission_classes = [permissions.IsAuthenticated]
+class FavoriteViewSet(mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthorOrReadOnly]  # вообще, там не author, а user... т.е. авторство по другому полю определяется
