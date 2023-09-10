@@ -353,15 +353,16 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
         return Recipe.objects.filter(author=obj).count()
 
 
-# ???? как урл прописать?
-# ??? через action сделать?
 class FavoriteSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
+    # recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
 
     class Meta:
         model = Favorite
         fields = ('id', 'user', 'recipe')
 
-    # def create(self, validated_data):
-    #     return Favorite.objects.create(**validated_data)
+    def to_representation(self, instance):
+        context = {'request': self.context.get('request')}
+        # print('!!!!', instance['recipe'], flush=True)
+        return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
+

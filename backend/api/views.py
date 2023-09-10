@@ -65,7 +65,6 @@ class CustomUserViewSet(UserViewSet):
             if User.objects.filter(id=id).exists() and user != author:  # не факт, что срабатывает
                 Subscription.objects.create(user=user, author=author)
                 serializer = SubscriptionSerializer(
-                    author,
                     data=request.data,
                     context={'request': request}
                 )
@@ -138,12 +137,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 serializer = FavoriteSerializer(
                     # user=user,
                     # recipe=recipe,
-                    data={'user': user, 'recipe': recipe.pk},
+                    data={'recipe': recipe.pk},
                     context={'request': request}
                 )  ## после проверки работоспособности заставить возвращать короткую инфу о рецепте
+                # serializer = FavoriteSerializer(recipe)
                 serializer.is_valid(raise_exception=True)
                 Favorite.objects.create(user=user, recipe=recipe)
-                return Response(status=status.HTTP_201_CREATED)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
