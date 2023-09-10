@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Tag, Ingredient, Recipe, RecipeIngredient
+from .models import Tag, Ingredient, Recipe, RecipeIngredient, Favorite
 
 # TODO добавить остальные (избранное и т.д.)
 # добавить в RecipeAdmin фильтрацию по тегам
@@ -33,7 +33,15 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-empty-'
 
 
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'user', 'recipe',)
+    list_editable = ('user', 'recipe',)
+    list_filter = ('user', 'recipe')
+    empty_value_display = '-empty-'
+
+
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
+admin.site.register(Favorite, FavoriteAdmin)

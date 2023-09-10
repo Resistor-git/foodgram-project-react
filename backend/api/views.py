@@ -127,22 +127,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=FavoriteSerializer
     )
     def favorite(self, request, pk):  # попробовать id вместо pk
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
             if recipe:
-                Favorite.objects.create(user=user, recipe=recipe)
                 serializer = FavoriteSerializer(
-                    user=user,
-                    rcipe=recipe,
-                    # data=request.data,
-                    # context={'request': request}
+                    # user=user,
+                    # recipe=recipe,
+                    data={'user': user, 'recipe': recipe.pk},
+                    context={'request': request}
                 )  ## после проверки работоспособности заставить возвращать короткую инфу о рецепте
                 serializer.is_valid(raise_exception=True)
-                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                Favorite.objects.create(user=user, recipe=recipe)
+                return Response(status=status.HTTP_201_CREATED)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
