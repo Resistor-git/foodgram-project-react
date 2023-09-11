@@ -77,8 +77,7 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient',
         related_name='recipes'
-    ) # ??? Множественное поле с выбором из предустановленного списка и с указанием количества и единицы измерения ??? models.CharField(max_length=16, choices=CHOISES_INGRIDIENTS)
-    # То же можно сделать и на уровне сериализатора, указав для поля color тип ChoiceField и передав в параметр choices список с возможными вариантами
+    )
     tags = models.ManyToManyField(
         Tag,
         related_name='recipes'
@@ -103,7 +102,7 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     ingredient = models.ForeignKey(
         Ingredient,
