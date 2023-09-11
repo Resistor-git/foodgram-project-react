@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     viewsets,
     permissions,
@@ -37,6 +38,7 @@ from api.permissions import (
     IsAuthorOrReadOnly,
     IsAdminOrReadOnly,
 )
+from api.filters import RecipeFilter
 
 User = get_user_model()
 
@@ -109,6 +111,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     # serializer_class = RecipeListRetrieveSerializer
     permission_classes = [IsAuthorOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):

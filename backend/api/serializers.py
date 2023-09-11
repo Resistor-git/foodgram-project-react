@@ -220,7 +220,6 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    # recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
 
     class Meta:
         model = Favorite
@@ -228,6 +227,5 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
-        # print('!!!!', instance['recipe'], flush=True)
         return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
 

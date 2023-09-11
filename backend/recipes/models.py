@@ -4,13 +4,6 @@ from django.core.validators import MinValueValidator, RegexValidator
 
 User = get_user_model()
 
-# CHOISES_INGRIDIENTS = [
-#     ('', ''),
-#     ('', ''),
-#     ('', ''),
-#     ('', ''),
-# ]
-
 
 # проверить поля на соответствие документации, например colour_code
 class Tag(models.Model):
