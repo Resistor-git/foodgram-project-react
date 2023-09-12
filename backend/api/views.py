@@ -127,6 +127,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    # def update(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     print('!!!instance:', instance)
+    #     serializer = self.get_serializer(instance, data=request.data, partial=True)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #     return Response(serializer.data)
+
+    # def perform_update(self, serializer):
+    #     serializer.save()
+
     @action(
         methods=['POST', 'DELETE'],
         detail=True,

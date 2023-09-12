@@ -112,7 +112,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    ingredients = IngredientAmountSerializer(many=True)
+    ingredients = IngredientAmountSerializer(many=True)  # read_only нельзя добавлять, а то ломается
     image = Base64ImageField()
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -136,10 +136,25 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         self.add_tags(recipe_created, tags)
         return recipe_created
 
+    def update(self, instance, validated_data):
+        """Updates the recipe.
+        Partial update is possible."""
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        ingredients = validated_data.pop('ingredients', None)
+        tags = validated_data.pop('tags', None)
+        if ingredients:
+            RecipeIngredient.objects.filter(recipe=instance).delete()
+            self.add_ingredients(instance, ingredients)
+        if tags:
+            self.add_tags(instance, tags)
+        return super().update(instance, validated_data)
+
     def add_ingredients(self, recipe, ingredients):
         """Used by create method to add ingredients and amounts to recipe"""
-        print('!!!recipe:', recipe, flush=True)
-        print('!!!ingredients(again):', ingredients, flush=True)
+        # print('!!!recipe:', recipe, flush=True)
+        # print('!!!ingredients(again):', ingredients, flush=True)
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
                 recipe=recipe,
