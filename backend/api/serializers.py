@@ -25,9 +25,6 @@ from recipes.models import (
 User = get_user_model()  # оно подхватывает кастомную модель CustomUser?
 
 
-# создать отдельный сериализатор для отображения инфы о пользователе?
-# весь огород с кастомными пользователями нужен чтобы показывать подписки... вроде бы
-# class UserCreateSerializer(UserCreateSerializer):
 class CustomUserCreateSerializer(UserCreateSerializer):
     """Custom serializer to create a user.
     In default serializer not all fields are obligatory."""
@@ -183,8 +180,7 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'text', 'author', 'image',
-                  'ingredients',
-                  'tags', 'cooking_time', 'is_favorited')
+                  'ingredients', 'tags', 'cooking_time', 'is_favorited')
 
     def get_is_favorited(self, obj):
         if not self.context.get('request').user.is_authenticated:

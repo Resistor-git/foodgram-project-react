@@ -56,21 +56,38 @@ class CustomUserViewSet(UserViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=SubscriptionSerializer,
         # удостовериться, что другой не может изменить подписку
     )
     def subscribe(self, request, id):  # id сюда как прилетает? - вроде как из реквеста (а в нём из url)
         user = request.user
         author = get_object_or_404(User, id=id)
 
+        # if request.method == 'POST':
+        #     if User.objects.filter(id=id).exists() and user != author:  # не факт, что срабатывает
+        #         print('!!!!request_data:', request.data, flush=True)
+        #         serializer = SubscriptionSerializer(
+        #             data=request.data,
+        #             context={'request': request}
+        #         )
+        #         # serializer.is_valid(raise_exception=True)
+        #         Subscription.objects.create(user=user, author=author)
+        #         # print('!!!!serializer.data:', serializer, flush=True)
+        #         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        #     else:
+        #         error_message = {'error': 'Can not subscribe to yourself'}
+        #         return Response(data=error_message, status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'POST':
-            if User.objects.filter(id=id).exists() and user != author:  # не факт, что срабатывает
+            if User.objects.filter(id=id).exists():
+                if user == author:
+                    error_message = {'error': 'Can not subscribe to yourself'}
+                    return Response(data=error_message, status=status.HTTP_400_BAD_REQUEST)
+                if Subscription.objects.filter(user=user, author=author).exists():
+                    error_message = {'error': 'You are already subscribed to that author'}
+                    return Response(data=error_message, status=status.HTTP_400_BAD_REQUEST)
+                serializer = self.get_serializer(author)
                 Subscription.objects.create(user=user, author=author)
-                serializer = SubscriptionSerializer(
-                    data=request.data,
-                    context={'request': request}
-                )
-                serializer.is_valid(raise_exception=True)
                 return Response(data=serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
