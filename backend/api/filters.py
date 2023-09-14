@@ -1,6 +1,6 @@
 import django_filters
 
-from recipes.models import Recipe, Tag
+from recipes.models import Recipe, Tag, Ingredient
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -19,3 +19,11 @@ class RecipeFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(favorites__user=self.request.user)
         return queryset
+
+
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='istartswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ['name']

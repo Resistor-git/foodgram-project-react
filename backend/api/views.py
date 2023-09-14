@@ -38,20 +38,25 @@ from api.permissions import (
     IsAuthorOrReadOnly,
     IsAdminOrReadOnly,
 )
-from api.filters import RecipeFilter
+from api.filters import (
+    RecipeFilter,
+    IngredientFilter
+)
 
 User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()  # или CustomUser?
-    serializer_class = CustomUserRetrieveSerializer
+    # serializer_class = CustomUserRetrieveSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return CustomUserCreateSerializer
-        return CustomUserRetrieveSerializer
+        if self.action in permissions.SAFE_METHODS:
+            print('!!!Using CustomUserRetrieveSerializer', flush=True)
+            return CustomUserRetrieveSerializer
+        print('!!!Using CustomUserCreateSerializer', flush=True)
+        return CustomUserCreateSerializer
 
     @action(
         methods=['POST', 'DELETE'],
@@ -189,6 +194,11 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    filter_backends = [DjangoFilterBackend]
+    # filterset_fields = ['name']
+    # search_fields = ['name']
+    # filterbackend и search чтобы список был выпадающий при создании...
+    filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

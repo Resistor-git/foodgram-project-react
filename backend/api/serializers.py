@@ -65,6 +65,17 @@ class CustomUserRetrieveSerializer(UserSerializer):
         return Subscription.objects.filter(user=current_user, author=obj).exists()
 
 
+# class CustomUserPasswordSerializer(UserSerializer):
+#     new_password = serializers.CharField()
+#     current_password = serializers.CharField()
+#     class Meta:
+#         model = User
+#         fields = (
+#             'new_password',
+#             'current_password'
+#         )
+
+
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
