@@ -52,11 +52,11 @@ class CustomUserViewSet(UserViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action in permissions.SAFE_METHODS:
+        print('!!!self.request.method:', self.request.method, flush=True)
+        if self.request.method in permissions.SAFE_METHODS:
             print('!!!Using CustomUserRetrieveSerializer', flush=True)
             return CustomUserRetrieveSerializer
-        print('!!!Using CustomUserCreateSerializer', flush=True)
-        return CustomUserCreateSerializer
+        return super().get_serializer_class()
 
     @action(
         methods=['POST', 'DELETE'],

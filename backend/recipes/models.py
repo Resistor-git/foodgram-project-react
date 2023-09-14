@@ -13,6 +13,7 @@ class Tag(models.Model):
         help_text='Name of the tag'
     )
     color = models.CharField(
+        # можно заменить на colorfield https://pypi.org/project/django-colorfield/
         max_length=7,
         unique=True,
         help_text='Color code in HEX, example: #49B64E'
