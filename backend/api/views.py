@@ -193,11 +193,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Get a single or all ingredients. Readolny."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    permission_classes = [IsAdminOrReadOnly]
     pagination_class = None
     filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['name']
-    # search_fields = ['name']
-    # filterbackend и search чтобы список был выпадающий при создании...
     filterset_class = IngredientFilter
 
 

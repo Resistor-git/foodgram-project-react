@@ -131,16 +131,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         print(f'!!!attempt to create recipe!!!', flush=True)
-        print(f'!!!validated data: {validated_data}', flush=True)
+        # print(f'!!!validated data: {validated_data}', flush=True)
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        print(f'!!!ingredients: {ingredients}!!!', flush=True)
-        print('!!!validated_data after pop:', validated_data, flush=True)
+        # print(f'!!!ingredients: {ingredients}!!!', flush=True)
+        # print('!!!validated_data after pop:', validated_data, flush=True)
         # recipe_created = super().create(validated_data)
         recipe_created = Recipe.objects.create(**validated_data)
-        print('!!!recipe_created отработал!!!', flush=True)
+        # print('!!!recipe_created отработал!!!', flush=True)
         self.add_ingredients(recipe_created, ingredients)
-        print('!!!add_ingredients отработал!!!', flush=True)
+        # print('!!!add_ingredients отработал!!!', flush=True)
         self.add_tags(recipe_created, tags)
         return recipe_created
 
@@ -151,6 +151,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
         ingredients = validated_data.pop('ingredients', None)
+        # print(f'!!!ingredients: {ingredients}!!!', flush=True)
         tags = validated_data.pop('tags', None)
         if ingredients:
             RecipeIngredient.objects.filter(recipe=instance).delete()
@@ -176,9 +177,20 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
-        print('!!!!', instance, flush=True)
+        # print('!!!!', instance, flush=True)
         return RecipeListRetrieveSerializer(instance, context=context).data
 
+    def validate(self, data):
+        all_ingredients = data.get('ingredients')
+        # print('!!!!all_ingredients:', all_ingredients, flush=True)
+        unique_ingredients= []
+        for ingredient in all_ingredients:
+            print('!!!!ingredient:', ingredient, flush=True)
+            unique_ingredients.append(ingredient['id'])
+        # print('!!!!unique_ingredients:', unique_ingredients, flush=True)
+        if len(all_ingredients) > len(set(unique_ingredients)):
+            raise serializers.ValidationError("Ingredients must be unique")
+        return data
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
