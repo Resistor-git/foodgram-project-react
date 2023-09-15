@@ -18,6 +18,7 @@ from recipes.models import (
     Ingredient,
     Tag,
     Favorite,
+    ShoppingCart,
 )
 from users.models import (
     Subscription,
@@ -33,6 +34,7 @@ from api.serializers import (
     CustomUserCreateSerializer,
     CustomUserRetrieveSerializer,
     FavoriteSerializer,
+    ShoppingCartSerializer
 )
 from api.permissions import (
     IsAuthorOrReadOnly,
@@ -188,6 +190,49 @@ class RecipeViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'errors': 'The recipe does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(
+        methods=['POST', 'DELETE'],  # GET чтобы скачать?
+        detail=True,
+        permission_classes=[IsAuthorOrReadOnly],  # строже? isAuthorOrAdmin
+        serializer_class=ShoppingCartSerializer
+    )
+    def shopping_cart(self, request, pk):
+        user = self.request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        if request.method == 'POST':
+            if recipe:
+                serializer = ShoppingCartSerializer(
+                    data={'recipe': recipe.pk},
+                    context={'request': request}
+                )
+                serializer.is_valid(raise_exception=True)
+                if not ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+                    ShoppingCart.objects.create(user=user, recipe=recipe)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    {'errors': 'The recipe is already in shopping cart'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                return Response(
+                    {'errors': 'The recipe does not exist'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        if request.method == 'DELETE':
+            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+                ShoppingCart.objects.get(user=user, recipe=recipe).delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(
+                    {'errors': 'The recipe is not in shopping cart'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+    @action(
+        methods=['GET']
+    )
+    def download_shopping_cart(self):
+        ...
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Get a single or all ingredients. Readolny."""

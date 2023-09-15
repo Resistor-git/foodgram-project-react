@@ -19,6 +19,7 @@ from recipes.models import (
     Tag,
     RecipeIngredient,
     Favorite,
+    ShoppingCart
 )
 
 
@@ -192,24 +193,31 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Ingredients must be unique")
         return data
 
+
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
     ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipeingredient_set')
     tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
-    # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'text', 'author', 'image',
-                  'ingredients', 'tags', 'cooking_time', 'is_favorited')
+        fields = ('id', 'name', 'text', 'author', 'image', 'ingredients',
+                  'tags', 'cooking_time', 'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
         if not self.context.get('request').user.is_authenticated:
             return False
         current_user = self.context.get('request').user
         return Favorite.objects.filter(user=current_user, recipe=obj).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        if not self.context.get('request').user.is_authenticated:
+            return False
+        current_user = self.context.get('request').user
+        return ShoppingCart.objects.filter(user=current_user, recipe=obj).exists()
 
 
 class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
@@ -263,3 +271,14 @@ class FavoriteSerializer(serializers.ModelSerializer):
         context = {'request': self.context.get('request')}
         return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
 
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('id', 'user', 'recipe')
+
+    def to_representation(self, instance):
+        context = {'request': self.context.get('request')}
+        return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
