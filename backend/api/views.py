@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,6 +18,7 @@ from rest_framework.response import Response
 from recipes.models import (
     Recipe,
     Ingredient,
+    RecipeIngredient,
     Tag,
     Favorite,
     ShoppingCart,
@@ -34,7 +37,8 @@ from api.serializers import (
     CustomUserCreateSerializer,
     CustomUserRetrieveSerializer,
     FavoriteSerializer,
-    ShoppingCartSerializer
+    ShoppingCartSerializer,
+    # ShoppingCartDownloadSerializer
 )
 from api.permissions import (
     IsAuthorOrReadOnly,
@@ -229,10 +233,36 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
 
     @action(
-        methods=['GET']
+        methods=['GET'],
+        detail=False,
+        # permission_classes=[permissions.IsAuthor]
     )
-    def download_shopping_cart(self):
-        ...
+    def download_shopping_cart(self, request):
+        # shopping_carts = ShoppingCart.objects.first()
+        # serializer = ShoppingCartDownloadSerializer(shopping_carts)
+        # print('!!! serializer.data:', serializer.data, flush=True)
+        # return HttpResponse(
+        #     serializer.data,
+        #     headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
+        # )
+
+        # привязка к пользователю... а если без неё??? ПЕРЕДЕЛАТЬ?
+        user = self.request.user
+        shopping_cart_ingredients = RecipeIngredient.objects.filter(
+            recipe__carts__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+        # shopping_cart_ingredients = RecipeIngredient.objects.first().recipe.carts
+        print('!!! shopping_cart_ingredients:', shopping_cart_ingredients, flush=True)
+        return HttpResponse(
+            shopping_cart_ingredients,
+            headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
+        )
+
+
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Get a single or all ingredients. Readolny."""

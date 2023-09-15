@@ -273,6 +273,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
+    # этот сериализатор нужен вообще?
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
@@ -282,3 +283,12 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
         return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
+
+
+# class ShoppingCartDownloadSerializer(serializers.ModelSerializer):
+#     ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipeingredient_set')
+#
+#     class Meta:
+#         model = ShoppingCart
+#         # fields = ('name', 'measurement_unit', ' amount')
+#         fields = ('ingredients',)
