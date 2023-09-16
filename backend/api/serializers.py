@@ -273,7 +273,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    # этот сериализатор нужен вообще?
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:

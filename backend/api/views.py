@@ -246,8 +246,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         #     headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
         # )
 
-        # привязка к пользователю... а если без неё??? ПЕРЕДЕЛАТЬ?
-        user = self.request.user
+        # привязка к пользователю... а если без неё??? можно рецепты вытаскивать из запроса??
+        # user = self.request.user
         shopping_cart_ingredients = RecipeIngredient.objects.filter(
             recipe__carts__user=request.user
         ).values(
@@ -255,9 +255,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
         # shopping_cart_ingredients = RecipeIngredient.objects.first().recipe.carts
-        print('!!! shopping_cart_ingredients:', shopping_cart_ingredients, flush=True)
+        # print('!!! shopping_cart_ingredients:', shopping_cart_ingredients, flush=True)
+        text = []
+        for el in shopping_cart_ingredients:
+            line = f'{el.get("ingredient__name")} ({el.get("ingredient__measurement_unit")}): {el.get("amount")}\n'
+            # print('!!! line:', line)
+            text.append(line)
         return HttpResponse(
-            shopping_cart_ingredients,
+            text,
             headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
         )
 
