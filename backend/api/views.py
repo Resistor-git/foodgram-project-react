@@ -256,17 +256,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).annotate(amount=Sum('amount'))
         # shopping_cart_ingredients = RecipeIngredient.objects.first().recipe.carts
         # print('!!! shopping_cart_ingredients:', shopping_cart_ingredients, flush=True)
-        text = []
+        # text = []
+        # for el in shopping_cart_ingredients:
+        #     line = f'{el.get("ingredient__name")} ({el.get("ingredient__measurement_unit")}): {el.get("amount")}\n'
+        #     # print('!!! line:', line)
+        #     text.append(line)
+        # return HttpResponse(
+        #     text,
+        #     headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
+        # )
+
+        text = {}
+        amounts = {}
         for el in shopping_cart_ingredients:
-            line = f'{el.get("ingredient__name")} ({el.get("ingredient__measurement_unit")}): {el.get("amount")}\n'
-            # print('!!! line:', line)
-            text.append(line)
+            if el.get('ingredient__name') not in amounts.keys():
+                name = el.get('ingredient__name')
+                amount = el.get('amount')
+                amounts[name] = amount
+            else:
+                amounts[el.get('ingredient__name')] = amounts[el.get('ingredient__name')] + el.get('amount')
+        print('!!! amounts', amounts)
         return HttpResponse(
-            text,
+            amounts,
             headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
         )
-
-
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
