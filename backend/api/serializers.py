@@ -200,7 +200,7 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)  # написать метод
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -282,12 +282,3 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
         return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
-
-
-# class ShoppingCartDownloadSerializer(serializers.ModelSerializer):
-#     ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipeingredient_set')
-#
-#     class Meta:
-#         model = ShoppingCart
-#         # fields = ('name', 'measurement_unit', ' amount')
-#         fields = ('ingredients',)
