@@ -27,5 +27,15 @@ class IsAdminOrReadOnly(permissions.BasePermission):
                 or request.user.is_authenticated)  # нужно ли аутентификацию проверять? анонам тоже должно показывать?
 
     def has_object_permission(self, request, view, obj):
+        return (request.method in permissions.SAFE_METHODS  # не работает
+                or request.user.is_staff)  # не уверен в этой строчке
+
+
+class IsAuthenticatedOrListOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated)  # нужно ли аутентификацию проверять? анонам тоже должно показывать?
+
+    def has_object_permission(self, request, view, obj):
+        return ((request.method in permissions.SAFE_METHODS and request.user.is_authenticated)  # не работает
                 or request.user.is_staff)  # не уверен в этой строчке

@@ -43,6 +43,7 @@ from api.serializers import (
 from api.permissions import (
     IsAuthorOrReadOnly,
     IsAdminOrReadOnly,
+    IsAuthenticatedOrListOnly,
 )
 from api.filters import (
     RecipeFilter,
@@ -55,8 +56,8 @@ User = get_user_model()
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()  # или CustomUser?
     # serializer_class = CustomUserRetrieveSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrListOnly]
     def get_serializer_class(self):
         print('!!!self.request.method:', self.request.method, flush=True)
         if self.request.method in permissions.SAFE_METHODS:
