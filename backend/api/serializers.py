@@ -44,6 +44,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
 
 
+# class CustomUserRetrieveSerializer(UserSerializer):
 class CustomUserRetrieveSerializer(UserSerializer):
     """Shows the info about the user."""
     is_subscribed = serializers.SerializerMethodField()

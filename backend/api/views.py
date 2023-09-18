@@ -3,6 +3,8 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from djoser.conf import settings
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     viewsets,
@@ -58,10 +60,11 @@ class CustomUserViewSet(UserViewSet):
     # serializer_class = CustomUserRetrieveSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     permission_classes = [IsAuthenticatedOrListOnly]
+
     def get_serializer_class(self):
-        print('!!!self.request.method:', self.request.method, flush=True)
-        if self.request.method in permissions.SAFE_METHODS:
-            print('!!!Using CustomUserRetrieveSerializer', flush=True)
+        # print('!!!self.request.method:', self.request.method, flush=True)
+        if self.request.method in permissions.SAFE_METHODS and self.request.user.is_authenticated:
+            # print('!!!Using CustomUserRetrieveSerializer', flush=True)
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
 
