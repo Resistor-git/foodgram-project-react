@@ -136,7 +136,7 @@ class CustomUserViewSet(UserViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """CRUD for recipes"""
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by('-created_at')
     # serializer_class = RecipeListRetrieveSerializer
     permission_classes = [IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend]
