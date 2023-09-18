@@ -238,47 +238,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
         # permission_classes=[permissions.IsAuthor]
     )
     def download_shopping_cart(self, request):
-        # shopping_carts = ShoppingCart.objects.first()
-        # serializer = ShoppingCartDownloadSerializer(shopping_carts)
-        # print('!!! serializer.data:', serializer.data, flush=True)
-        # return HttpResponse(
-        #     serializer.data,
-        #     headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
-        # )
-
-        # привязка к пользователю... а если без неё??? можно рецепты вытаскивать из запроса??
-        # user = self.request.user
         shopping_cart_ingredients = RecipeIngredient.objects.filter(
             recipe__carts__user=request.user
         ).values(
             'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
-        # shopping_cart_ingredients = RecipeIngredient.objects.first().recipe.carts
-        # print('!!! shopping_cart_ingredients:', shopping_cart_ingredients, flush=True)
-        # text = []
-        # for el in shopping_cart_ingredients:
-        #     line = f'{el.get("ingredient__name")} ({el.get("ingredient__measurement_unit")}): {el.get("amount")}\n'
-        #     # print('!!! line:', line)
-        #     text.append(line)
-        # return HttpResponse(
-        #     text,
-        #     headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
-        # )
-
-        text = {}
-        amounts = {}
+            'ingredient__measurement_unit',
+            'amount'
+        )
+        text = []
+        shopping_cart_summed_ingredients = {}
         for el in shopping_cart_ingredients:
-            if el.get('ingredient__name') not in amounts.keys():
-                name = el.get('ingredient__name')
-                amount = el.get('amount')
-                amounts[name] = amount
+            name = el.get('ingredient__name')
+            unit = el.get("ingredient__measurement_unit")
+            amount = el.get('amount')
+            if el.get('ingredient__name') not in shopping_cart_summed_ingredients.keys():
+                shopping_cart_summed_ingredients[name] = {'unit': unit, 'amount': amount}
             else:
-                amounts[el.get('ingredient__name')] = amounts[el.get('ingredient__name')] + el.get('amount')
-        print('!!! amounts', amounts)
+                shopping_cart_summed_ingredients[name]['amount'] += amount
+        for key, value in shopping_cart_summed_ingredients.items():
+            text.append(f'{key.capitalize()} ({value["unit"]}):  {value["amount"]}\n')
         return HttpResponse(
-            amounts,
-            headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="foo.txt"'}
+            text,
+            headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="shopping_cart.txt"'}
         )
 
 
