@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from djoser.conf import settings
+from django.core.paginator import Paginator
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
@@ -50,6 +51,10 @@ from api.permissions import (
 from api.filters import (
     RecipeFilter,
     IngredientFilter
+)
+
+from api.paginators import (
+    CustomLimitPagination,
 )
 
 User = get_user_model()
@@ -116,12 +121,14 @@ class CustomUserViewSet(UserViewSet):
     @action(
         methods=['GET'],
         detail=False,
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[permissions.IsAuthenticated],
+        pagination_class=CustomLimitPagination
     )
     def subscriptions(self, request):
         user = request.user
         authors = CustomUser.objects.filter(following__user=user)
         page = self.paginate_queryset(authors)
+        # print('!!!page:', page, flush=True)
         if page:
             serializer = SubscriptionSerializer(
                 page,
@@ -130,12 +137,7 @@ class CustomUserViewSet(UserViewSet):
             )
             return self.get_paginated_response(serializer.data)
         else:
-            serializer = SubscriptionSerializer(
-                authors,
-                many=True,
-                context={'request': request}
-            )
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

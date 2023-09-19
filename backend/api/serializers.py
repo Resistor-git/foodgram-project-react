@@ -252,7 +252,7 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes = Recipe.objects.filter(author=obj)
-        recipes_limit = request.GET.get('recipes_limit', 1)  #todo убрать дефолтное магическое число
+        recipes_limit = request.GET.get('recipes_limit', 3)  #todo убрать дефолтное магическое число
         if recipes_limit:
             recipes = recipes[:int(recipes_limit)]
             return RecipeShortListRetrieveSerializer(recipes, many=True).data
