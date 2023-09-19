@@ -188,15 +188,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ingredients should not be empty')
         unique_ingredients = []
         for ingredient in value:
-            print('!!!!ingredient:', ingredient, flush=True)
+            # print('!!!!ingredient:', ingredient, flush=True)
             unique_ingredients.append(ingredient['id'])
             if ingredient['amount'] < 1:
                 raise serializers.ValidationError(f'Amount of ingredient can not be less than 1')
             if not Ingredient.objects.filter(pk=ingredient['id']).exists():
                 raise serializers.ValidationError(f'Ingredient with id {ingredient["id"]} does not exist')
-        # print('!!!!unique_ingredients:', unique_ingredients, flush=True)
         if len(value) > len(set(unique_ingredients)):
             raise serializers.ValidationError('Ingredients must be unique')
+        return value
+
+    def validate_tags(self, value):
+        unique_tags = set(value)
+        print(f'!!!value: {value}, unique_tags: {unique_tags}')
+        if len(value) > len(unique_tags):
+            raise serializers.ValidationError('Tags must be unique')
         return value
 
     # def validate(self, data):
