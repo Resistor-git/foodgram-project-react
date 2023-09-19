@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -36,6 +36,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         # model = CustomUser
         model = User  # надо ли указывать кастомную модель?
         fields = (
+            'id',
             'username',
             'password',
             'email',
@@ -182,17 +183,33 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         # print('!!!!', instance, flush=True)
         return RecipeListRetrieveSerializer(instance, context=context).data
 
-    def validate(self, data):
-        all_ingredients = data.get('ingredients')
-        # print('!!!!all_ingredients:', all_ingredients, flush=True)
-        unique_ingredients= []
-        for ingredient in all_ingredients:
+    def validate_ingredients(self, value):
+        if len(value) < 1:
+            raise serializers.ValidationError('Ingredients should not be empty')
+        unique_ingredients = []
+        for ingredient in value:
             print('!!!!ingredient:', ingredient, flush=True)
             unique_ingredients.append(ingredient['id'])
+            if not Ingredient.objects.filter(pk=ingredient['id']).exists():
+                raise serializers.ValidationError(f'Ingredient with id {ingredient["id"]} does not exist')
         # print('!!!!unique_ingredients:', unique_ingredients, flush=True)
-        if len(all_ingredients) > len(set(unique_ingredients)):
-            raise serializers.ValidationError("Ingredients must be unique")
-        return data
+        if len(value) > len(set(unique_ingredients)):
+            raise serializers.ValidationError('Ingredients must be unique')
+        return value
+
+    # def validate(self, data):
+    #     all_ingredients = data.get('ingredients')
+    #     # if len(all_ingredients) < 1:
+    #     #     raise serializers.ValidationError('Ingredients should not be empty')
+    #     # print('!!!!all_ingredients:', all_ingredients, flush=True)
+    #     unique_ingredients = []
+    #     for ingredient in all_ingredients:
+    #         print('!!!!ingredient:', ingredient, flush=True)
+    #         unique_ingredients.append(ingredient['id'])
+    #     # print('!!!!unique_ingredients:', unique_ingredients, flush=True)
+    #     if len(all_ingredients) > len(set(unique_ingredients)):
+    #         raise serializers.ValidationError("Ingredients must be unique")
+    #     return data
 
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):

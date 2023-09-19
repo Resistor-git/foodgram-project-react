@@ -64,12 +64,13 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()  # или CustomUser?
     # serializer_class = CustomUserRetrieveSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    permission_classes = [IsAuthenticatedOrListOnly]
+    # permission_classes = [IsAuthenticatedOrListOnly]
+    # permission_classes = [permissions.AllowAny]
 
     def get_serializer_class(self):
-        # print('!!!self.request.method:', self.request.method, flush=True)
+        print('!!!self.request.method:', self.request.method, flush=True)
         if self.request.method in permissions.SAFE_METHODS and self.request.user.is_authenticated:
-            # print('!!!Using CustomUserRetrieveSerializer', flush=True)
+            print('!!!Using CustomUserRetrieveSerializer', flush=True)
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
 
@@ -147,6 +148,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
+    pagination_class = CustomLimitPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
