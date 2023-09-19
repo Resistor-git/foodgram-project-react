@@ -190,6 +190,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in value:
             print('!!!!ingredient:', ingredient, flush=True)
             unique_ingredients.append(ingredient['id'])
+            if ingredient['amount'] < 1:
+                raise serializers.ValidationError(f'Amount of ingredient can not be less than 1')
             if not Ingredient.objects.filter(pk=ingredient['id']).exists():
                 raise serializers.ValidationError(f'Ingredient with id {ingredient["id"]} does not exist')
         # print('!!!!unique_ingredients:', unique_ingredients, flush=True)

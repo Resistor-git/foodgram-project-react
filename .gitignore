@@ -136,3 +136,5 @@ dmypy.json
 /команды_локального_деплоя.txt
 /front_only_infra/
 /backend/media/
+/для_тестирования_апи_foodgram.postman_collection.json
+/backend/db.sqlite3.bak

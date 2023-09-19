@@ -145,7 +145,6 @@ DJOSER = {
     },
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
-
     },
     'LOGIN_FIELD': 'email',
 }
