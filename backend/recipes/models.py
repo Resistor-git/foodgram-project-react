@@ -78,7 +78,6 @@ class Recipe(models.Model):
         related_name='recipes'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        default=1,
         help_text='Time to cook according to the recipe',
         validators=[
             MinValueValidator(limit_value=1,
