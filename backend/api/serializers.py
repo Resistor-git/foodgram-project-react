@@ -51,6 +51,7 @@ class CustomUserRetrieveSerializer(UserSerializer):
 
     class Meta:
         model = User
+        # model = CustomUser
         fields = (
             'email',
             'id',
@@ -65,17 +66,6 @@ class CustomUserRetrieveSerializer(UserSerializer):
             return False
         current_user = self.context.get('request').user
         return Subscription.objects.filter(user=current_user, author=obj).exists()
-
-
-# class CustomUserPasswordSerializer(UserSerializer):
-#     new_password = serializers.CharField()
-#     current_password = serializers.CharField()
-#     class Meta:
-#         model = User
-#         fields = (
-#             'new_password',
-#             'current_password'
-#         )
 
 
 class Base64ImageField(serializers.ImageField):

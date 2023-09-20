@@ -58,7 +58,7 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
-backend/db.sqlite3
+backend/db.sqlite3.bak2
 db.sqlite3-journal
 
 # Flask stuff:
@@ -138,3 +138,4 @@ dmypy.json
 /backend/media/
 /для_тестирования_апи_foodgram.postman_collection.json
 /backend/db.sqlite3.bak
+/backend/db.sqlite3

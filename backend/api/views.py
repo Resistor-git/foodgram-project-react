@@ -62,15 +62,12 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()  # или CustomUser?
-    # serializer_class = CustomUserRetrieveSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    # permission_classes = [IsAuthenticatedOrListOnly]
-    # permission_classes = [permissions.AllowAny]
+    # queryset = CustomUser.objects.all()
 
     def get_serializer_class(self):
-        print('!!!self.request.method:', self.request.method, flush=True)
+        # print('!!!self.request.method:', self.request.method, flush=True)
         if self.request.method in permissions.SAFE_METHODS and self.request.user.is_authenticated:
-            print('!!!Using CustomUserRetrieveSerializer', flush=True)
+            # print('!!!Using CustomUserRetrieveSerializer', flush=True)
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
 
@@ -79,26 +76,11 @@ class CustomUserViewSet(UserViewSet):
         detail=True,
         permission_classes=[permissions.IsAuthenticated],
         serializer_class=SubscriptionSerializer,
-        # удостовериться, что другой не может изменить подписку
     )
     def subscribe(self, request, id):  # id сюда как прилетает? - вроде как из реквеста (а в нём из url)
         user = request.user
         author = get_object_or_404(User, id=id)
 
-        # if request.method == 'POST':
-        #     if User.objects.filter(id=id).exists() and user != author:  # не факт, что срабатывает
-        #         print('!!!!request_data:', request.data, flush=True)
-        #         serializer = SubscriptionSerializer(
-        #             data=request.data,
-        #             context={'request': request}
-        #         )
-        #         # serializer.is_valid(raise_exception=True)
-        #         Subscription.objects.create(user=user, author=author)
-        #         # print('!!!!serializer.data:', serializer, flush=True)
-        #         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        #     else:
-        #         error_message = {'error': 'Can not subscribe to yourself'}
-        #         return Response(data=error_message, status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'POST':
             if User.objects.filter(id=id).exists():
                 if user == author:
