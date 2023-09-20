@@ -22,10 +22,13 @@ class IngredientInline(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [IngredientInline]
-    list_display = ('pk', 'name', 'author')
+    list_display = ('pk', 'name', 'author', 'favorite_count')
     list_editable = ('name', 'author',)
     list_filter = ('name', 'author')
     empty_value_display = '-empty-'
+
+    def favorite_count(self, obj):
+        return obj.favorites.count()
 
 
 class RecipeIngredientAdmin(admin.ModelAdmin):
