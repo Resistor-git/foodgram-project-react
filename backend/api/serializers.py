@@ -45,7 +45,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
 
 
-# class CustomUserRetrieveSerializer(UserSerializer):
 class CustomUserRetrieveSerializer(UserSerializer):
     """Shows the info about the user."""
     is_subscribed = serializers.SerializerMethodField()
@@ -292,6 +291,12 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ('id', 'user', 'recipe')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=['user', 'recipe']
+            )
+        ]
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
@@ -308,3 +313,9 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
         return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
+
+    def validate_recipe(self, value):
+        print(f'!!!value: {value.id}')
+        if not Recipe.objects.filter(pk=value.id).exists():
+            raise serializers.ValidationError(f'Ingredient with id {value.id} does not exist')
+        return value

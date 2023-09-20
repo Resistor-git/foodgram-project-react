@@ -2,10 +2,6 @@ from django.contrib import admin
 
 from .models import Tag, Ingredient, Recipe, RecipeIngredient, Favorite, ShoppingCart
 
-# TODO добавить остальные (избранное и т.д.)
-# добавить в RecipeAdmin фильтрацию по тегам
-# на странице рецепта вывести общее число добавлений этого рецепта в избранное;
-
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'color', 'slug')
@@ -20,8 +16,13 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-empty-'
 
 
+class IngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+
+
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'author',)
+    inlines = [IngredientInline]
+    list_display = ('pk', 'name', 'author')
     list_editable = ('name', 'author',)
     list_filter = ('name', 'author')
     empty_value_display = '-empty-'
