@@ -9,7 +9,7 @@ services:
 
   db:
     image: postgres:13
-    env_file: ../.env
+    env_file: .env
     volumes:
       - /var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     image: resistordocker/foodgram_backend
     restart: always
     env_file:
-      - ../.env
+      - .env
     volumes:
       - static_value:/app/backend_static/
       - media_value:/app/media/
