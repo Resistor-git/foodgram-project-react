@@ -102,18 +102,6 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "infra/docker-compose.production.yml"
           target: "foodgram"
-# env на сервере лежит не в той папке где должен, должен в foodgram, по факту в корне (создал руками), там его почему-то ищет workflow
-#      - name: Copy env
-#        uses: actions/checkout@v3
-#      - name: Copy docker-compose.yml via ssh
-#        uses: appleboy/scp-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USER }}
-#          key: ${{ secrets.SSH_KEY }}
-#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-#          source: "../.env"
-#          target: "foodgram"
       - name: Copy nginx via ssh
         uses: appleboy/scp-action@v0.1.3
         with:
@@ -132,7 +120,6 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd foodgram
-            cd infra
             sudo docker compose -f docker-compose.production.yml pull
             sudo docker compose -f docker-compose.production.yml down
             sudo docker compose -f docker-compose.production.yml up -d
