@@ -79,9 +79,9 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./infra/ # !!!!!!!
+          context: ./infra_WRONG_PATH/
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest # !!!!!!!!!!
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
 
   deploy:
     runs-on: ubuntu-22.04
@@ -123,7 +123,6 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd foodgram
-            ls
             sudo docker compose -f docker-compose.production.yml pull
             sudo docker compose -f docker-compose.production.yml down
             sudo docker compose -f docker-compose.production.yml up -d

@@ -32,7 +32,7 @@ services:
   nginx:
     image: nginx:1.19.3
     ports:
-      - "8080:80"  # скорее всего поменять. на сервере в nginx 8080:80
+      - "8080:80"  # на сервере в nginx 8080
     volumes:
 #      - ../static:/var/html/backend_static/
       - static_value:/var/html/backend_static/

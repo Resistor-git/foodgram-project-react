@@ -31,7 +31,8 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     volumes:
-      - ../frontend/:/app/result_build/  # здесь отличие с продакшеном
+#      - ../frontend/:/app/result_build/  # здесь отличие с продакшеном
+     - static_value:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
