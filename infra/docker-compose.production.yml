@@ -37,9 +37,9 @@ services:
 #      - ../static:/var/html/backend_static/
       - static_value:/var/html/backend_static/
       - media_value:/var/html/media/
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+#      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+#      - ../frontend/build:/usr/share/nginx/html/
+#      - ../docs/:/usr/share/nginx/html/api/docs/
     restart: always
     depends_on:
       - backend
