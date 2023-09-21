@@ -9,15 +9,14 @@ services:
 
   db:
     image: postgres:13
-    env_file: ../.env
+    env_file: .env
     volumes:
       - /var/lib/postgresql/data
 
   backend:
     image: resistordocker/foodgram_backend
     restart: always
-    env_file:
-      - ../.env
+    env_file: .env
     volumes:
       - static_value:/app/backend_static/
       - media_value:/app/media/
@@ -27,19 +26,20 @@ services:
   frontend:
     image: resistordocker/foodgram_frontend
     volumes:
-      - ../frontend/:/app/result_build/
+#      - ../frontend/:/app/result_build/
+      - static_value:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
     ports:
-      - "8080:80"  # скорее всего поменять, но на какие? те что на сервере в nginx 8080:80?
+      - "8080:80"  # скорее всего поменять. на сервере в nginx 8080:80
     volumes:
 #      - ../static:/var/html/backend_static/
       - static_value:/var/html/backend_static/
       - media_value:/var/html/media/
-#      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-#      - ../frontend/build:/usr/share/nginx/html/
-#      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
     restart: always
     depends_on:
       - backend
