@@ -9,7 +9,9 @@ services:
 
   db:
     image: postgres:13
-    env_file: ./.env
+    env_file:
+      - ./.env
+
     volumes:
       - /var/lib/postgresql/data
 
