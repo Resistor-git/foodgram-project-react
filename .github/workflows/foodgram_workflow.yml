@@ -83,85 +83,54 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest # !!!!!!!!!!
 
-#  deploy:
-#    runs-on: ubuntu-22.04
-#    needs:
-#      - build_backend_and_push_to_docker_hub
-#      - build_frontend_and_push_to_docker_hub
-#      - build_gateway_and_push_to_docker_hub
-#    steps:
-##      - name: Checkout repo
-##        uses: actions/checkout@v3
-##      - name: Copy docker-compose.yml via ssh
-##        uses: appleboy/scp-action@master
-##        with:
-##          host: ${{ secrets.HOST }}
-##          username: ${{ secrets.USER }}
-##          key: ${{ secrets.SSH_KEY }}
-##          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-##          source: "docker-compose.production.yml"
-##          target: "foodgram"
-## env на сервере лежит не в той папке где должен, должен в foodgram, по факту в корне (создал руками), там его почему-то ищет workflow
-##      - name: Copy env
-##        uses: actions/checkout@v3
-##      - name: Copy docker-compose.yml via ssh
-##        uses: appleboy/scp-action@master
-##        with:
-##          host: ${{ secrets.HOST }}
-##          username: ${{ secrets.USER }}
-##          key: ${{ secrets.SSH_KEY }}
-##          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-##          source: "../.env"
-##          target: "foodgram"
-#
-#      - name: Executing remote ssh commands to deploy
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USER }}
-#          key: ${{ secrets.SSH_KEY }}
-#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-#          script: |
-#            cd foodgram
-#            sudo docker compose -f docker-compose.production.yml pull
-#            sudo docker compose -f docker-compose.production.yml down
-#            sudo docker compose -f docker-compose.production.yml up -d
-#            sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
-#            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
-#            sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
-#            sudo docker-compose -f docker-compose.production.yml exec backend python manage.py import_ingredients ./data/ingredients.json
-
-
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs:
       - build_backend_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
       - build_gateway_and_push_to_docker_hub
     steps:
-      - name: executing remote ssh commands to deploy
+#      - name: Checkout repo
+#        uses: actions/checkout@v3
+#      - name: Copy docker-compose.yml via ssh
+#        uses: appleboy/scp-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.USER }}
+#          key: ${{ secrets.SSH_KEY }}
+#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+#          source: "docker-compose.production.yml"
+#          target: "foodgram"
+# env на сервере лежит не в той папке где должен, должен в foodgram, по факту в корне (создал руками), там его почему-то ищет workflow
+#      - name: Copy env
+#        uses: actions/checkout@v3
+#      - name: Copy docker-compose.yml via ssh
+#        uses: appleboy/scp-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.USER }}
+#          key: ${{ secrets.SSH_KEY }}
+#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+#          source: "../.env"
+#          target: "foodgram"
+
+      - name: Executing remote ssh commands to deploy1111111111111111
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            sudo docker-compose stop
-            sudo docker-compose rm backend
-            sudo rm .env
-            touch .env
-            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            cd foodgram
+            sudo docker compose -f docker-compose.production.yml pull
+            sudo docker compose -f docker-compose.production.yml down
+            sudo docker compose -f docker-compose.production.yml up -d
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
+            sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
+            sudo docker-compose -f docker-compose.production.yml exec backend python manage.py import_ingredients ./data/ingredients.json
 
-            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-            echo DEBUG=${{ secrets.DEBUG }} >> .env
-            echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
-            sudo docker-compose up -d
 
 #  send_message:
 #    runs-on: ubuntu-latest
