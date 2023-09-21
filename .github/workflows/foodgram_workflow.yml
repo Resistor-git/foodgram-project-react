@@ -89,7 +89,7 @@ jobs:
       - build_backend_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
       - build_gateway_and_push_to_docker_hub
-#    steps:
+    steps:
 #      - name: Checkout repo
 #        uses: actions/checkout@v3
 #      - name: Copy docker-compose.yml via ssh
