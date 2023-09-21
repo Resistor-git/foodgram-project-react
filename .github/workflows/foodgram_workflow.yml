@@ -79,9 +79,9 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./infra/ # !!!!!!!!
+          context: ./infra/ # !!!!!!!
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest # !!!!!!!!!!!
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest # !!!!!!!!!!
 
   deploy:
     runs-on: ubuntu-22.04
