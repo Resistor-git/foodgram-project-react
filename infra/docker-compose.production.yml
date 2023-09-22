@@ -47,7 +47,7 @@ services:
 
 
   gateway:
-    image: resistordocker/kittygram_gateway
+    image: resistordocker/foodgram_gateway
     env_file: .env
     ports:
       - "8080:80"
