@@ -1,0 +1,71 @@
+version: '3.3'
+
+volumes:
+  postgres_data:
+  static_value:
+  media_value:
+
+services:
+
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    image: resistordocker/foodgram_backend
+    restart: always
+    env_file: .env
+    volumes:
+      - static_value:/app/backend_static/
+      - media_value:/app/media/
+    depends_on:
+      - db
+
+  frontend:
+    image: resistordocker/foodgram_frontend
+    command: cp -r /result_build/. /static/
+    volumes:
+#      - ../frontend/:/app/result_build/
+      - static_value:/app/result_build/
+
+
+#  nginx:
+#    image: nginx:1.19.3
+#    ports:
+#      - "8000:80"
+#    volumes:
+#      - static_value:/var/html/backend_static/
+#      - media_value:/var/html/media/
+##      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+#      - ../frontend/build:/usr/share/nginx/html/
+#      - ../docs/:/usr/share/nginx/html/api/docs/
+#    restart: always
+#    depends_on:
+#      - backend
+#      - frontend
+
+
+
+  gateway:
+    image: resistordocker/foodgram_gateway
+    env_file: .env
+    ports:
+      - "8080:80"
+    volumes:
+#      - static_value:/static
+#      - media_value:/app/media
+      - static_value:/var/html/backend_static/
+      - media_value:/var/html/media/
+
+# какой код взять? выше (дефольтный) или ниже (с прошлого спринта)?
+#  gateway:
+#    build: ./nginx/
+#    env_file: .env
+#    ports:
+#      - "8080:80"
+#    volumes:
+#      - static_value:/static
+#      - media_value:/app/media
+
