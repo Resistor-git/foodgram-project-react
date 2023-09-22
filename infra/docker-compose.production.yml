@@ -26,8 +26,8 @@ services:
   frontend:
     image: resistordocker/foodgram_frontend
     volumes:
-      - ../frontend/:/app/result_build/
-#      - static_value:/app/result_build/
+#      - ../frontend/:/app/result_build/
+      - static_value:/app/result_build/
 
 #  nginx:
 #    image: nginx:1.19.3
@@ -52,8 +52,11 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - static_value:/static
-      - media_value:/app/media
+#      - static_value:/static
+#      - media_value:/app/media
+      - static_value:/var/html/backend_static/
+      - media_value:/var/html/media/
+
 # какой код взять? выше (дефольтный) или ниже (с прошлого спринта)?
 #  gateway:
 #    build: ./nginx/
