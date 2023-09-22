@@ -11,7 +11,8 @@ services:
     image: postgres:13
     env_file: ../.env
     volumes:
-      - /var/lib/postgresql/data  # ? разве не postgres_data
+#      - /var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
   backend:
     build:
