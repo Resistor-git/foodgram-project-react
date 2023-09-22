@@ -25,9 +25,11 @@ services:
 
   frontend:
     image: resistordocker/foodgram_frontend
+    command: cp -r /result_build/. /static/
     volumes:
 #      - ../frontend/:/app/result_build/
       - static_value:/app/result_build/
+
 
 #  nginx:
 #    image: nginx:1.19.3
