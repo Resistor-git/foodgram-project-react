@@ -32,6 +32,21 @@ services:
       - ../frontend/:/app/result_build/
 #     - static_value:/app/result_build/
 
+  gateway:
+    image: resistordocker/foodgram_gateway
+    env_file: .env
+    ports:
+      - "8080:80"
+    volumes:
+      - static_value:/var/html/backend_static/
+      - media_value:/var/html/media/
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
+    restart: always
+    depends_on:
+        - backend
+        - frontend
+
 # можно через это, но тогда надо ещё в папку на сервере копировать nginx.conf через workflow
 #  nginx:
 #    image: nginx:1.19.3
@@ -47,19 +62,3 @@ services:
 #    depends_on:
 #      - backend
 #      - frontend
-
-  gateway:
-    image: resistordocker/foodgram_gateway
-    env_file: .env
-    ports:
-      - "8080:80"
-    volumes:
-      - static_value:/var/html/backend_static/
-      - media_value:/var/html/media/
-      - ../frontend/build:/usr/share/nginx/html/
-#      - static_value:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
-    restart: always
-    depends_on:
-        - backend
-        - frontend
