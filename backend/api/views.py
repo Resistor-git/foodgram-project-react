@@ -1,18 +1,13 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from djoser.conf import settings
-from django.core.paginator import Paginator
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     viewsets,
     permissions,
-    # filters,
     status,
-    serializers,
     mixins
 )
 from rest_framework.decorators import action
@@ -35,18 +30,14 @@ from api.serializers import (
     RecipeCreateSerializer,
     IngredientSerializer,
     TagSerializer,
-    # SubscriptionCreateSerializer,
     SubscriptionSerializer,
-    CustomUserCreateSerializer,
     CustomUserRetrieveSerializer,
     FavoriteSerializer,
     ShoppingCartSerializer,
-    # ShoppingCartDownloadSerializer
 )
 from api.permissions import (
     IsAuthorOrReadOnly,
     IsAdminOrReadOnly,
-    IsAuthenticatedOrListOnly,
 )
 from api.filters import (
     RecipeFilter,
@@ -151,7 +142,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     context={'request': request}
                 )
                 serializer.is_valid(raise_exception=True)
-                if serializer.is_valid:  # два раза проверка?
+                if serializer.is_valid:
                     Favorite.objects.create(user=user, recipe=recipe)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
@@ -161,7 +152,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 Favorite.objects.get(user=user, recipe=recipe).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response({'errors': 'The recipe does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'errors': 'The recipe does not exist'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
     @action(
         methods=['POST', 'DELETE'],
@@ -227,7 +221,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             text.append(f'{key.capitalize()} ({value["unit"]}):  {value["amount"]}\n')
         return HttpResponse(
             text,
-            headers={'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="shopping_cart.txt"'}
+            headers={
+                'Content-Type': 'text/plain',
+                'Content-Disposition': 'attachment; filename="shopping_cart.txt"'
+            }
         )
 
 

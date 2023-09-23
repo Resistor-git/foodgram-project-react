@@ -7,7 +7,6 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import (
-    CustomUser,
     Subscription,
 )
 from recipes.models import (
@@ -103,7 +102,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    ingredients = IngredientAmountSerializer(many=True)  # read_only нельзя добавлять, а то ломается
+    ingredients = IngredientAmountSerializer(many=True)
     image = Base64ImageField()
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -159,9 +158,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in value:
             unique_ingredients.append(ingredient['id'])
             if ingredient['amount'] < 1:
-                raise serializers.ValidationError(f'Amount of ingredient can not be less than 1')
+                raise serializers.ValidationError('Amount of ingredient can not be less than 1')
             if not Ingredient.objects.filter(pk=ingredient['id']).exists():
-                raise serializers.ValidationError(f'Ingredient with id {ingredient["id"]} does not exist')
+                raise serializers.ValidationError(
+                    f'Ingredient with id {ingredient["id"]} does not exist'
+                )
         if len(value) > len(set(unique_ingredients)):
             raise serializers.ValidationError('Ingredients must be unique')
         return value
@@ -174,8 +175,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
-    author = CustomUserRetrieveSerializer(read_only=True)  # read_only надо ли?
-    ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipeingredient_set')
+    author = CustomUserRetrieveSerializer(read_only=True)
+    ingredients = RecipeIngredientSerializer(
+        many=True,
+        read_only=True,
+        source='recipeingredient_set'
+    )
     tags = TagSerializer(many=True, read_only=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -230,7 +235,7 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes = Recipe.objects.filter(author=obj)
-        recipes_limit = request.GET.get('recipes_limit', 3)  #todo убрать дефолтное магическое число
+        recipes_limit = request.GET.get('recipes_limit', 3)
         if recipes_limit:
             recipes = recipes[:int(recipes_limit)]
             return RecipeShortListRetrieveSerializer(recipes, many=True).data
