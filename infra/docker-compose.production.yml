@@ -51,7 +51,7 @@ services:
     image: resistordocker/kittygram_gateway
     env_file: .env
     ports:
-      - "8080:80"
+      - "8000:80"
     volumes:
       - static_value:/var/html/backend_static/
       - media_value:/var/html/media/
