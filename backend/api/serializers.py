@@ -56,7 +56,10 @@ class CustomUserRetrieveSerializer(UserSerializer):
         if not self.context.get('request').user.is_authenticated:
             return False
         current_user = self.context.get('request').user
-        return Subscription.objects.filter(user=current_user, author=obj).exists()
+        return Subscription.objects.filter(
+            user=current_user,
+            author=obj
+        ).exists()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -94,7 +97,9 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     and amount from RecipeIngredient model"""
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
-    measurement_unit = serializers.CharField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = RecipeIngredient
@@ -124,7 +129,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         Partial update is possible."""
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.cooking_time = validated_data.get(
+            'cooking_time',
+            instance.cooking_time
+        )
         ingredients = validated_data.pop('ingredients', None)
         tags = validated_data.pop('tags', None)
         if ingredients:
@@ -153,12 +161,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, value):
         if len(value) < 1:
-            raise serializers.ValidationError('Ingredients should not be empty')
+            raise serializers.ValidationError(
+                'Ingredients should not be empty'
+            )
         unique_ingredients = []
         for ingredient in value:
             unique_ingredients.append(ingredient['id'])
             if ingredient['amount'] < 1:
-                raise serializers.ValidationError('Amount of ingredient can not be less than 1')
+                raise serializers.ValidationError(
+                    'Amount of ingredient can not be less than 1'
+                )
             if not Ingredient.objects.filter(pk=ingredient['id']).exists():
                 raise serializers.ValidationError(
                     f'Ingredient with id {ingredient["id"]} does not exist'
@@ -188,8 +200,9 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'text', 'author', 'image', 'ingredients',
-                  'tags', 'cooking_time', 'is_favorited', 'is_in_shopping_cart')
+        fields = ('id', 'name', 'text', 'author',
+                  'image', 'ingredients', 'tags', 'cooking_time',
+                  'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
         if not self.context.get('request').user.is_authenticated:
@@ -201,7 +214,10 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
         if not self.context.get('request').user.is_authenticated:
             return False
         current_user = self.context.get('request').user
-        return ShoppingCart.objects.filter(user=current_user, recipe=obj).exists()
+        return ShoppingCart.objects.filter(
+            user=current_user,
+            recipe=obj
+        ).exists()
 
 
 class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
@@ -259,7 +275,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
-        return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
+        return RecipeShortListRetrieveSerializer(
+            instance['recipe'], context=context
+        ).data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -271,9 +289,13 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
-        return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
+        return RecipeShortListRetrieveSerializer(
+            instance['recipe'], context=context
+        ).data
 
     def validate_recipe(self, value):
         if not Recipe.objects.filter(pk=value.id).exists():
-            raise serializers.ValidationError(f'Ingredient with id {value.id} does not exist')
+            raise serializers.ValidationError(
+                f'Ingredient with id {value.id} does not exist'
+            )
         return value
