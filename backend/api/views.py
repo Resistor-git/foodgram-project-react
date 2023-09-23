@@ -55,8 +55,7 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
 
     def get_serializer_class(self):
-        if (self.request.method in
-                permissions.SAFE_METHODS and
+        if (self.request.method in permissions.SAFE_METHODS and
                 self.request.user.is_authenticated):
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
