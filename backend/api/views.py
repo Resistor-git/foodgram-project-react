@@ -55,7 +55,9 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
 
     def get_serializer_class(self):
-        if self.request.method in permissions.SAFE_METHODS and self.request.user.is_authenticated:
+        if (self.request.method in
+                permissions.SAFE_METHODS and
+                self.request.user.is_authenticated):
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
 
@@ -73,13 +75,25 @@ class CustomUserViewSet(UserViewSet):
             if User.objects.filter(id=id).exists():
                 if user == author:
                     error_message = {'error': 'Can not subscribe to yourself'}
-                    return Response(data=error_message, status=status.HTTP_400_BAD_REQUEST)
-                if Subscription.objects.filter(user=user, author=author).exists():
-                    error_message = {'error': 'You are already subscribed to that author'}
-                    return Response(data=error_message, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        data=error_message,
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                if Subscription.objects.filter(
+                        user=user, author=author
+                ).exists():
+                    error_message = {
+                        'error': 'You are already subscribed to that author'
+                    }
+                    return Response(
+                        data=error_message, status=status.HTTP_400_BAD_REQUEST
+                    )
                 serializer = self.get_serializer(author)
                 Subscription.objects.create(user=user, author=author)
-                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    data=serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
@@ -144,7 +158,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid:
                     Favorite.objects.create(user=user, recipe=recipe)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
@@ -173,9 +190,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     context={'request': request}
                 )
                 serializer.is_valid(raise_exception=True)
-                if not ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+                if not ShoppingCart.objects.filter(
+                        user=user,
+                        recipe=recipe
+                ).exists():
                     ShoppingCart.objects.create(user=user, recipe=recipe)
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                    return Response(
+                        serializer.data,
+                        status=status.HTTP_201_CREATED
+                    )
                 return Response(
                     {'errors': 'The recipe is already in shopping cart'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -213,17 +236,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
             name = el.get('ingredient__name')
             unit = el.get("ingredient__measurement_unit")
             amount = el.get('amount')
-            if el.get('ingredient__name') not in shopping_cart_summed_ingredients.keys():
-                shopping_cart_summed_ingredients[name] = {'unit': unit, 'amount': amount}
+            if (
+                    el.get('ingredient__name') not in
+                    shopping_cart_summed_ingredients.keys()
+            ):
+                shopping_cart_summed_ingredients[name] = {
+                    'unit': unit, 'amount': amount
+                }
             else:
                 shopping_cart_summed_ingredients[name]['amount'] += amount
         for key, value in shopping_cart_summed_ingredients.items():
-            text.append(f'{key.capitalize()} ({value["unit"]}):  {value["amount"]}\n')
+            text.append(
+                f'{key.capitalize()} ({value["unit"]}):  {value["amount"]}\n'
+            )
         return HttpResponse(
             text,
             headers={
                 'Content-Type': 'text/plain',
-                'Content-Disposition': 'attachment; filename="shopping_cart.txt"'
+                'Content-Disposition': 'attachment; filename="shop_cart.txt"'
             }
         )
 
