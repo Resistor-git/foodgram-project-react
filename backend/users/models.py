@@ -27,15 +27,15 @@ class CustomUser(AbstractUser):
 
 class Subscription(models.Model):
     user = models.ForeignKey(
-        CustomUser,  # ? или через User = get_user_model()
+        CustomUser,
         on_delete=models.CASCADE,
-        related_name='follower',  # subscriptions
+        related_name='follower',
         verbose_name='Follower (кто подписан)'
     )
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='following',  # followers
+        related_name='following',
         verbose_name='Content author (на кого подписан)'
     )
 
