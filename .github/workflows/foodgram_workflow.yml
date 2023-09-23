@@ -64,20 +64,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
 
-  send_message_after_docker_pushing:
-    name: Send message after updating images
-    runs-on: ubuntu-latest
-    needs:
-      - build_backend_and_push_to_docker_hub
-      - build_frontend_and_push_to_docker_hub
-    steps:
-      - name: Send message to Telegram
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: Foodgram images were successfully updated on DockerHub
-
   deploy:
     name: Deploy to the server
     runs-on: ubuntu-22.04
