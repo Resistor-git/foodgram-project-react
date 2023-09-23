@@ -56,8 +56,9 @@ services:
     volumes:
       - static_value:/var/html/backend_static/
       - media_value:/var/html/media/
-#      - ../frontend/build:/usr/share/nginx/html/
+      - ../frontend/build:/usr/share/nginx/html/
       - static_value:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
     restart: always
     depends_on:
         - backend
