@@ -1,5 +1,4 @@
 import django_filters
-from rest_framework.exceptions import ValidationError
 
 from recipes.models import Recipe, Tag, Ingredient
 
@@ -22,7 +21,7 @@ class RecipeFilter(django_filters.FilterSet):
             try:
                 return queryset.filter(favorites__user=self.request.user)
             except TypeError:
-                return queryset  # handle anonymous user using '?is_favorited=1'
+                return queryset
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
@@ -30,7 +29,7 @@ class RecipeFilter(django_filters.FilterSet):
             try:
                 return queryset.filter(carts__user=self.request.user)
             except TypeError:
-                return queryset  # handle anonymous user using '?is_in_shopping_cart=1'
+                return queryset
         return queryset
 
 

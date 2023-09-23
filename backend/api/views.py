@@ -61,13 +61,10 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    queryset = User.objects.all()  # или CustomUser?
-    # queryset = CustomUser.objects.all()
+    queryset = User.objects.all()
 
     def get_serializer_class(self):
-        # print('!!!self.request.method:', self.request.method, flush=True)
         if self.request.method in permissions.SAFE_METHODS and self.request.user.is_authenticated:
-            # print('!!!Using CustomUserRetrieveSerializer', flush=True)
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
 
@@ -77,7 +74,7 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
         serializer_class=SubscriptionSerializer,
     )
-    def subscribe(self, request, id):  # id сюда как прилетает? - вроде как из реквеста (а в нём из url)
+    def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
 
@@ -126,7 +123,6 @@ class CustomUserViewSet(UserViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """CRUD for recipes"""
     queryset = Recipe.objects.all().order_by('-created_at')
-    # serializer_class = RecipeListRetrieveSerializer
     permission_classes = [IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
@@ -169,9 +165,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response({'errors': 'The recipe does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=['POST', 'DELETE'],  # GET чтобы скачать?
+        methods=['POST', 'DELETE'],
         detail=True,
-        permission_classes=[IsAuthorOrReadOnly],  # строже? isAuthorOrAdmin
+        permission_classes=[IsAuthorOrReadOnly],
         serializer_class=ShoppingCartSerializer
     )
     def shopping_cart(self, request, pk):
@@ -209,7 +205,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['GET'],
         detail=False,
-        # permission_classes=[permissions.IsAuthor]
     )
     def download_shopping_cart(self, request):
         shopping_cart_ingredients = RecipeIngredient.objects.filter(
@@ -252,7 +247,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     Used to assign tags to recipes."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [IsAdminOrReadOnly]  # ??? или readonly? или allowany? или дефолтный?
+    permission_classes = [IsAdminOrReadOnly]
     pagination_class = None
 
 
@@ -261,4 +256,4 @@ class FavoriteViewSet(mixins.CreateModelMixin,
                       viewsets.GenericViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
-    permission_classes = [IsAuthorOrReadOnly]  # вообще, там не author, а user... т.е. авторство по другому полю определяется
+    permission_classes = [IsAuthorOrReadOnly]

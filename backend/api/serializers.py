@@ -1,12 +1,9 @@
 import base64
-import sys
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, exceptions
-from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import (
@@ -22,19 +19,15 @@ from recipes.models import (
     ShoppingCart
 )
 
-
-User = get_user_model()  # оно подхватывает кастомную модель CustomUser?
+User = get_user_model()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
     """Custom serializer to create a user.
     In default serializer not all fields are obligatory."""
-    # указывается в settings.py
-    # https://www.youtube.com/watch?v=lFD5uoCcvSA&t=105s
 
     class Meta:
-        # model = CustomUser
-        model = User  # надо ли указывать кастомную модель?
+        model = User
         fields = (
             'id',
             'username',
@@ -51,7 +44,6 @@ class CustomUserRetrieveSerializer(UserSerializer):
 
     class Meta:
         model = User
-        # model = CustomUser
         fields = (
             'email',
             'id',
@@ -98,7 +90,6 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount')
 
 
-# этот для создания пробовал
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Returns id, name,  measurement unit of ingredient from Ingredient model,
     and amount from RecipeIngredient model"""
@@ -122,17 +113,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   'ingredients', 'tags', 'cooking_time',)
 
     def create(self, validated_data):
-        print(f'!!!attempt to create recipe!!!', flush=True)
-        # print(f'!!!validated data: {validated_data}', flush=True)
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        # print(f'!!!ingredients: {ingredients}!!!', flush=True)
-        # print('!!!validated_data after pop:', validated_data, flush=True)
-        # recipe_created = super().create(validated_data)
         recipe_created = Recipe.objects.create(**validated_data)
-        # print('!!!recipe_created отработал!!!', flush=True)
         self.add_ingredients(recipe_created, ingredients)
-        # print('!!!add_ingredients отработал!!!', flush=True)
         self.add_tags(recipe_created, tags)
         return recipe_created
 
@@ -143,7 +127,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
         ingredients = validated_data.pop('ingredients', None)
-        # print(f'!!!ingredients: {ingredients}!!!', flush=True)
         tags = validated_data.pop('tags', None)
         if ingredients:
             RecipeIngredient.objects.filter(recipe=instance).delete()
@@ -154,8 +137,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def add_ingredients(self, recipe, ingredients):
         """Used by create method to add ingredients and amounts to recipe"""
-        # print('!!!recipe:', recipe, flush=True)
-        # print('!!!ingredients(again):', ingredients, flush=True)
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
                 recipe=recipe,
@@ -169,7 +150,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
-        # print('!!!!', instance, flush=True)
         return RecipeListRetrieveSerializer(instance, context=context).data
 
     def validate_ingredients(self, value):
@@ -177,7 +157,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Ingredients should not be empty')
         unique_ingredients = []
         for ingredient in value:
-            # print('!!!!ingredient:', ingredient, flush=True)
             unique_ingredients.append(ingredient['id'])
             if ingredient['amount'] < 1:
                 raise serializers.ValidationError(f'Amount of ingredient can not be less than 1')
@@ -189,24 +168,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate_tags(self, value):
         unique_tags = set(value)
-        print(f'!!!value: {value}, unique_tags: {unique_tags}')
         if len(value) > len(unique_tags):
             raise serializers.ValidationError('Tags must be unique')
         return value
-
-    # def validate(self, data):
-    #     all_ingredients = data.get('ingredients')
-    #     # if len(all_ingredients) < 1:
-    #     #     raise serializers.ValidationError('Ingredients should not be empty')
-    #     # print('!!!!all_ingredients:', all_ingredients, flush=True)
-    #     unique_ingredients = []
-    #     for ingredient in all_ingredients:
-    #         print('!!!!ingredient:', ingredient, flush=True)
-    #         unique_ingredients.append(ingredient['id'])
-    #     # print('!!!!unique_ingredients:', unique_ingredients, flush=True)
-    #     if len(all_ingredients) > len(set(unique_ingredients)):
-    #         raise serializers.ValidationError("Ingredients must be unique")
-    #     return data
 
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
@@ -305,7 +269,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         return RecipeShortListRetrieveSerializer(instance['recipe'], context=context).data
 
     def validate_recipe(self, value):
-        print(f'!!!value: {value.id}')
         if not Recipe.objects.filter(pk=value.id).exists():
             raise serializers.ValidationError(f'Ingredient with id {value.id} does not exist')
         return value
