@@ -24,7 +24,7 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = [IngredientInline]
     list_display = ('pk', 'name', 'author', 'favorite_count')
     list_editable = ('name', 'author',)
-    list_filter = ('name', 'author')
+    list_filter = ('name', 'author', 'tags')
     empty_value_display = '-empty-'
 
     def favorite_count(self, obj):
