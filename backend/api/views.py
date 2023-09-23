@@ -108,7 +108,6 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         authors = CustomUser.objects.filter(following__user=user)
         page = self.paginate_queryset(authors)
-        # print('!!!page:', page, flush=True)
         if page:
             serializer = SubscriptionSerializer(
                 page,
