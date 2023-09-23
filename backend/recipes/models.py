@@ -5,7 +5,6 @@ from django.core.validators import MinValueValidator, RegexValidator
 User = get_user_model()
 
 
-# проверить поля на соответствие документации, например colour_code
 class Tag(models.Model):
     name = models.CharField(
         max_length=200,
@@ -13,7 +12,6 @@ class Tag(models.Model):
         help_text='Name of the tag'
     )
     color = models.CharField(
-        # можно заменить на colorfield https://pypi.org/project/django-colorfield/
         max_length=7,
         unique=True,
         help_text='Color code in HEX, example: #49B64E'
@@ -118,7 +116,7 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favored',  # subscriptions
+        related_name='favored',
         verbose_name='User who favored a recipe'
     )
 
@@ -149,7 +147,7 @@ class ShoppingCart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='carts',  # ?? или наоборот purchases
+        related_name='carts',
         verbose_name='Favorite recipes of a user'
     )
 

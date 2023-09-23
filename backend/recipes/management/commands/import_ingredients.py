@@ -4,8 +4,7 @@ import os
 from django.core.management.base import BaseCommand
 from recipes.models import Ingredient
 
-
-# python manage.py import_ingredients ./data/ingredients.json
+# запуск: python manage.py import_ingredients ./data/ingredients.json
 class Command(BaseCommand):
     help = 'Загрузка данных из json файла в модель Ingredients.'
 
