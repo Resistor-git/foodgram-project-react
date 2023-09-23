@@ -33,7 +33,6 @@ ALLOWED_HOSTS = [
     'praktikum16foodgram.crabdance.com'
 ]
 
-
 # Application definition
 
 INSTALLED_APPS = [
