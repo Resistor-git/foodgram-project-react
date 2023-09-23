@@ -6,7 +6,6 @@ on:
       - master
 
 jobs:
-  backend_tests:
   tests:
     runs-on: ubuntu-22.04
     steps:
