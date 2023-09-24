@@ -6,10 +6,6 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from users.models import (
-    Subscription,
-    CustomUser,
-)
 from recipes.models import (
     Recipe,
     Ingredient,
@@ -41,7 +37,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 class CustomUserRetrieveSerializer(UserSerializer):
     """Shows info about the user."""
     is_subscribed = serializers.SerializerMethodField()
-    # не забудь удалить Subscription из импорта
+
     def get_is_subscribed(self, obj):
         """
         Returns True if current user is subscribed to the author of recipe.
@@ -77,14 +73,23 @@ class Base64ImageField(serializers.ImageField):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurement_unit')
+        fields = (
+            'id',
+            'name',
+            'measurement_unit'
+        )
 
 
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'color', 'slug')
+        fields = (
+            'id',
+            'name',
+            'color',
+            'slug'
+        )
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
@@ -92,7 +97,10 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount')
+        fields = (
+            'id',
+            'amount'
+        )
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -106,7 +114,12 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount',)
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+            'amount',
+        )
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -185,8 +198,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'text', 'author', 'image',
-                  'ingredients', 'tags', 'cooking_time',)
+        fields = (
+            'id',
+            'name',
+            'text',
+            'author',
+            'image',
+            'ingredients',
+            'tags',
+            'cooking_time',
+        )
 
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
@@ -218,9 +239,18 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'text', 'author',
-                  'image', 'ingredients', 'tags', 'cooking_time',
-                  'is_favorited', 'is_in_shopping_cart',)
+        fields = (
+            'id',
+            'name',
+            'text',
+            'author',
+            'image',
+            'ingredients',
+            'tags',
+            'cooking_time',
+            'is_favorited',
+            'is_in_shopping_cart',
+        )
 
 
 class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
@@ -228,7 +258,12 @@ class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time',)
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )
 
 
 class SubscriptionSerializer(CustomUserRetrieveSerializer):
@@ -259,8 +294,13 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             'recipes',
             'recipes_count',
         )
-        read_only_fields = ('email', 'username', 'first_name',
-                            'last_name', 'is_subscribed',)
+        read_only_fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+        )
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -274,11 +314,18 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = ('id', 'user', 'recipe')
+        fields = (
+            'id',
+            'user',
+            'recipe'
+        )
         validators = [
             UniqueTogetherValidator(
                 queryset=Favorite.objects.all(),
-                fields=('user', 'recipe')
+                fields=(
+                    'user',
+                    'recipe'
+                )
             )
         ]
 
@@ -301,4 +348,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ('id', 'user', 'recipe')
+        fields = (
+            'id',
+            'user',
+            'recipe'
+        )
