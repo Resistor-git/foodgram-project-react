@@ -8,6 +8,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import (
     Subscription,
+    CustomUser,
 )
 from recipes.models import (
     Recipe,
@@ -38,16 +39,18 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class CustomUserRetrieveSerializer(UserSerializer):
-    """Shows the info about the user."""
+    """Shows info about the user."""
     is_subscribed = serializers.SerializerMethodField()
-
+    # не забудь удалить Subscription из импорта
     def get_is_subscribed(self, obj):
+        """
+        Returns True if current user is subscribed to the author of recipe.
+        obj is the author.
+        Anonymous user can not subscribe, so func returns False in this case.
+        """
         if self.context.get('request').user.is_authenticated:
             current_user = self.context.get('request').user
-            return Subscription.objects.filter(
-                user=current_user,
-                author=obj
-            ).exists()
+            return obj.following.filter(user=current_user).exists()
         return False
 
     class Meta:
