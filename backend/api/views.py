@@ -35,7 +35,7 @@ from api.serializers import (
     FavoriteSerializer,
     ShoppingCartSerializer,
 )
-from api.permissions import (
+from api.my_permissions import (
     IsAuthorOrReadOnly,
     IsAdminOrReadOnly,
 )
@@ -53,6 +53,17 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
+    # permission_classes чинит фильтрацию по пользователю, без этого users/{id}/ возвращает 404
+    # но ломает анонимный users/me/
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # serializer_class = CustomUserRetrieveSerializer
+
+    # def get_permissions(self):
+    #     print('!!!', self.action, flush=True)
+    #     если хочу анониму показывать только список, а не конкретного
+    #     if self.action == 'retrieve':
+    #         return [permissions.IsAuthenticated()]
+    #     return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_serializer_class(self):
         if (self.request.method in permissions.SAFE_METHODS
@@ -63,7 +74,7 @@ class CustomUserViewSet(UserViewSet):
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticatedOrReadOnly],
         serializer_class=SubscriptionSerializer,
     )
     def subscribe(self, request, id):
