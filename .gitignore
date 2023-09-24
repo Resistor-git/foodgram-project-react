@@ -139,3 +139,4 @@ dmypy.json
 /для_тестирования_апи_foodgram.postman_collection.json
 /backend/db.sqlite3.bak
 /backend/db.sqlite3
+*.bak*
