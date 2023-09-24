@@ -131,8 +131,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe_created = Recipe.objects.create(**validated_data)
-        self.add_ingredients(recipe_created, ingredients)
-        self.add_tags(recipe_created, tags)
+        self.__add_ingredients(recipe_created, ingredients)
+        self.__add_tags(recipe_created, tags)
         return recipe_created
 
     def update(self, instance, validated_data):
@@ -148,12 +148,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags', None)
         if ingredients:
             RecipeIngredient.objects.filter(recipe=instance).delete()
-            self.add_ingredients(instance, ingredients)
+            self.__add_ingredients(instance, ingredients)
         if tags:
-            self.add_tags(instance, tags)
+            self.__add_tags(instance, tags)
         return super().update(instance, validated_data)
 
-    def add_ingredients(self, recipe, ingredients):
+    def __add_ingredients(self, recipe, ingredients):
         """Used by create method to add ingredients and amounts to recipe"""
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
@@ -163,7 +163,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ) for ingredient in ingredients
         )
 
-    def add_tags(self, recipe, tags):
+    def __add_tags(self, recipe, tags):
         recipe.tags.set(tags)
 
     def to_representation(self, instance):
