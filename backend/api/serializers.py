@@ -41,6 +41,15 @@ class CustomUserRetrieveSerializer(UserSerializer):
     """Shows the info about the user."""
     is_subscribed = serializers.SerializerMethodField()
 
+    def get_is_subscribed(self, obj):
+        if not self.context.get('request').user.is_authenticated:
+            return False
+        current_user = self.context.get('request').user
+        return Subscription.objects.filter(
+            user=current_user,
+            author=obj
+        ).exists()
+
     class Meta:
         model = User
         fields = (
@@ -51,15 +60,6 @@ class CustomUserRetrieveSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
-
-    def get_is_subscribed(self, obj):
-        if not self.context.get('request').user.is_authenticated:
-            return False
-        current_user = self.context.get('request').user
-        return Subscription.objects.filter(
-            user=current_user,
-            author=obj
-        ).exists()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -110,11 +110,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = IngredientAmountSerializer(many=True)
     image = Base64ImageField()
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'text', 'author', 'image',
-                  'ingredients', 'tags', 'cooking_time',)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
@@ -185,6 +180,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Tags must be unique')
         return value
 
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'text', 'author', 'image',
+                  'ingredients', 'tags', 'cooking_time',)
+
 
 class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     author = CustomUserRetrieveSerializer(read_only=True)
@@ -197,12 +197,6 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'text', 'author',
-                  'image', 'ingredients', 'tags', 'cooking_time',
-                  'is_favorited', 'is_in_shopping_cart')
 
     def get_is_favorited(self, obj):
         if not self.context.get('request').user.is_authenticated:
@@ -219,34 +213,25 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
             recipe=obj
         ).exists()
 
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'text', 'author',
+                  'image', 'ingredients', 'tags', 'cooking_time',
+                  'is_favorited', 'is_in_shopping_cart',)
+
 
 class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('id', 'name', 'image', 'cooking_time',)
 
 
 class SubscriptionSerializer(CustomUserRetrieveSerializer):
     """Provides information about the author and their recipes"""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-        read_only_fields = ('email', 'username', 'first_name',
-                            'last_name', 'is_subscribed')
 
     def get_recipes(self, obj):
         request = self.context.get('request')
@@ -259,9 +244,30 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
 
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+        )
+        read_only_fields = ('email', 'username', 'first_name',
+                            'last_name', 'is_subscribed',)
+
 
 class FavoriteSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    def to_representation(self, instance):
+        context = {'request': self.context.get('request')}
+        return RecipeShortListRetrieveSerializer(
+            instance['recipe'], context=context
+        ).data
 
     class Meta:
         model = Favorite
@@ -273,19 +279,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
             )
         ]
 
-    def to_representation(self, instance):
-        context = {'request': self.context.get('request')}
-        return RecipeShortListRetrieveSerializer(
-            instance['recipe'], context=context
-        ).data
-
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = ShoppingCart
-        fields = ('id', 'user', 'recipe')
 
     def to_representation(self, instance):
         context = {'request': self.context.get('request')}
@@ -299,3 +295,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
                 f'Ingredient with id {value.id} does not exist'
             )
         return value
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('id', 'user', 'recipe')
