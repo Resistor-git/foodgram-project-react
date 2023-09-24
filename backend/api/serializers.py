@@ -42,13 +42,13 @@ class CustomUserRetrieveSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        if not self.context.get('request').user.is_authenticated:
-            return False
-        current_user = self.context.get('request').user
-        return Subscription.objects.filter(
-            user=current_user,
-            author=obj
-        ).exists()
+        if self.context.get('request').user.is_authenticated:
+            current_user = self.context.get('request').user
+            return Subscription.objects.filter(
+                user=current_user,
+                author=obj
+            ).exists()
+        return False
 
     class Meta:
         model = User
