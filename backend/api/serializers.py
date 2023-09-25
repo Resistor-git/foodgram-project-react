@@ -3,10 +3,8 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (
     Recipe,
@@ -236,7 +234,8 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
         """
           Returns True if the recipe is in favorites of the current user.
           obj is the recipe (Recipe instance).
-          Anonymous user can not have favorites, so func returns False in this case.
+          Anonymous user can not have favorites,
+          so func returns False in this case.
           """
         current_user = self.context.get('request').user
         if current_user.is_authenticated:
@@ -247,7 +246,8 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
         """
            Returns True if the recipe is in shopping cart of the current user.
            obj is the recipe (Recipe instance).
-           Anonymous user can not have anything in shopping cart, so func returns False in this case.
+           Anonymous user can not have anything in shopping cart,
+           so func returns False in this case.
            """
         current_user = self.context.get('request').user
         if current_user.is_authenticated:
@@ -289,14 +289,26 @@ class SubscriptionCreateDestroySerializer(serializers.ModelSerializer):
     def validate(self, data):
         if self.context['request'].method == 'POST':
             if data['user'] == data['author']:
-                raise serializers.ValidationError('Can not subscribe to yourself')
-            if Subscription.objects.filter(user=data['user'], author=data['author']).exists():
-                raise serializers.ValidationError('You are already subscribed to that author')
+                raise serializers.ValidationError(
+                    'Can not subscribe to yourself'
+                )
+            if Subscription.objects.filter(
+                    user=data['user'],
+                    author=data['author']
+            ).exists():
+                raise serializers.ValidationError(
+                    'You are already subscribed to that author'
+                )
             return data
         if self.context['request'].method == 'DELETE':
-            if Subscription.objects.filter(user=data['user'], author=data['author']).exists():
+            if Subscription.objects.filter(
+                    user=data['user'],
+                    author=data['author']
+            ).exists():
                 return data
-            raise serializers.ValidationError('Not subscribed')
+            raise serializers.ValidationError(
+                'Not subscribed'
+            )
 
     def to_representation(self, instance):
         return SubscriptionRetrieveSerializer(instance['author'], context={
@@ -361,12 +373,21 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
-            if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
-                raise serializers.ValidationError('Already in favorites')
+            if Favorite.objects.filter(
+                    user=data['user'], recipe=data['recipe']
+            ).exists():
+                raise serializers.ValidationError(
+                    'Already in favorites'
+                )
         if self.context['request'].method == 'DELETE':
-            if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+            if Favorite.objects.filter(
+                    user=data['user'],
+                    recipe=data['recipe']
+            ).exists():
                 return data
-            raise serializers.ValidationError('The recipe is not in favorites')
+            raise serializers.ValidationError(
+                'The recipe is not in favorites'
+            )
         return data
 
     class Meta:
@@ -396,13 +417,23 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
-            if ShoppingCart.objects.filter(user=data['user'], recipe=data['recipe']).exists():
-                raise serializers.ValidationError('The recipe is already in shopping cart')
+            if ShoppingCart.objects.filter(
+                    user=data['user'],
+                    recipe=data['recipe']
+            ).exists():
+                raise serializers.ValidationError(
+                    'The recipe is already in shopping cart'
+                )
             return data
         if self.context['request'].method == 'DELETE':
-            if ShoppingCart.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+            if ShoppingCart.objects.filter(
+                    user=data['user'],
+                    recipe=data['recipe']
+            ).exists():
                 return data
-            raise serializers.ValidationError('The recipe is not in shopping cart')
+            raise serializers.ValidationError(
+                'The recipe is not in shopping cart'
+            )
 
     class Meta:
         model = ShoppingCart
