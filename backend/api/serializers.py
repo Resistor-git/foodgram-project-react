@@ -128,16 +128,20 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        recipe_created = Recipe.objects.create(**validated_data)
-        self.__add_ingredients(recipe_created, ingredients)
-        self.__add_tags(recipe_created, tags)
-        return recipe_created
+        ingredients = validated_data.pop('ingredients', None)
+        tags = validated_data.pop('tags', None)
+        if ingredients and tags:
+            recipe_created = Recipe.objects.create(**validated_data)
+            self.__add_ingredients(recipe_created, ingredients)
+            self.__add_tags(recipe_created, tags)
+            return recipe_created
+        raise serializers.ValidationError(
+            'Ingredients or tags are not provided'
+        )
 
     def update(self, instance, validated_data):
         """Updates the recipe.
-        Partial update is possible."""
+        Partial update is possible, so ingredients and tags can be None"""
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get(
