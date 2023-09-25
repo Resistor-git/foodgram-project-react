@@ -47,7 +47,7 @@ class CustomUserRetrieveSerializer(UserSerializer):
         """
         current_user = self.context.get('request').user
         if current_user.is_authenticated:
-            return obj.following.filter(user=current_user).exists()  # а ести obj.follower без фильтра... подумать
+            return obj.following.filter(user=current_user).exists()
         return False
 
     class Meta:
@@ -241,13 +241,15 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
         return False
 
     def get_is_in_shopping_cart(self, obj):
-        if not self.context.get('request').user.is_authenticated:
-            return False
+        """
+           Returns True if the recipe is in shopping cart of the current user.
+           obj is the recipe (Recipe instance).
+           Anonymous user can not have anything in shopping cart, so func returns False in this case.
+           """
         current_user = self.context.get('request').user
-        return ShoppingCart.objects.filter(
-            user=current_user,
-            recipe=obj
-        ).exists()
+        if current_user.is_authenticated:
+            return obj.carts.filter(user=current_user).exists()
+        return False
 
     class Meta:
         model = Recipe
@@ -352,11 +354,11 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         ).data
 
     def validate_recipe(self, value):
-        if not Recipe.objects.filter(pk=value.id).exists():
-            raise serializers.ValidationError(
-                f'Ingredient with id {value.id} does not exist'
-            )
-        return value
+        if Recipe.objects.filter(pk=value.id).exists():
+            return value
+        raise serializers.ValidationError(
+            f'Ingredient with id {value.id} does not exist'
+        )
 
     class Meta:
         model = ShoppingCart
