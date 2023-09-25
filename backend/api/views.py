@@ -30,7 +30,8 @@ from api.serializers import (
     RecipeCreateSerializer,
     IngredientSerializer,
     TagSerializer,
-    SubscriptionSerializer,
+    SubscriptionCreateSerializer,
+    SubscriptionRetrieveSerializer,
     CustomUserRetrieveSerializer,
     FavoriteSerializer,
     ShoppingCartSerializer,
@@ -65,35 +66,44 @@ class CustomUserViewSet(UserViewSet):
         methods=['POST', 'DELETE'],
         detail=True,
         permission_classes=[permissions.IsAuthenticatedOrReadOnly],
-        serializer_class=SubscriptionSerializer,
+        # serializer_class=SubscriptionSerializer,  # ???
     )
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
-            if User.objects.filter(id=id).exists():
-                if user == author:
-                    error_message = {'error': 'Can not subscribe to yourself'}
-                    return Response(
-                        data=error_message,
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                if Subscription.objects.filter(
-                        user=user, author=author
-                ).exists():
-                    error_message = {
-                        'error': 'You are already subscribed to that author'
-                    }
-                    return Response(
-                        data=error_message, status=status.HTTP_400_BAD_REQUEST
-                    )
-                serializer = self.get_serializer(author)
-                Subscription.objects.create(user=user, author=author)
-                return Response(
-                    data=serializer.data,
-                    status=status.HTTP_201_CREATED
+            if User.objects.filter(id=id).exists():  # в принципе get_object_or_404 уже отловил это
+                serializer = SubscriptionCreateSerializer(
+                    data={
+                        'user': user.pk,
+                        'author': author.pk
+                    },
+                    context={'request': request}
                 )
+                serializer.is_valid(raise_exception=True)
+                # if user == author:
+                #     error_message = {'error': 'Can not subscribe to yourself'}
+                #     return Response(
+                #         data=error_message,
+                #         status=status.HTTP_400_BAD_REQUEST
+                #     )
+                # if Subscription.objects.filter(
+                #         user=user, author=author
+                # ).exists():
+                #     error_message = {
+                #         'error': 'You are already subscribed to that author'
+                #     }
+                #     return Response(
+                #         data=error_message, status=status.HTTP_400_BAD_REQUEST
+                #     )
+                # serializer = self.get_serializer(author)
+                if serializer.is_valid:
+                    Subscription.objects.create(user=user, author=author)
+                    return Response(
+                        data=serializer.data,
+                        status=status.HTTP_201_CREATED
+                    )
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
@@ -114,7 +124,7 @@ class CustomUserViewSet(UserViewSet):
         authors = CustomUser.objects.filter(following__user=user)
         page = self.paginate_queryset(authors)
         if page:
-            serializer = SubscriptionSerializer(
+            serializer = SubscriptionRetrieveSerializer(
                 page,
                 many=True,
                 context={'request': request}

@@ -16,6 +16,8 @@ from recipes.models import (
     ShoppingCart
 )
 
+from users.models import Subscription
+
 User = get_user_model()
 
 
@@ -280,15 +282,45 @@ class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
         )
 
 
-class SubscriptionSerializer(CustomUserRetrieveSerializer):
+class SubscriptionCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subscription
+        fields = (
+            'user',
+            'author',
+        )
+
+    def validate(self, data):
+        if data['user'] == data['author']:
+            raise serializers.ValidationError('Can not subscribe to yourself')
+        return data
+
+    validators = [
+        UniqueTogetherValidator(
+            queryset=Subscription.objects.all(),
+            fields=('user', 'author',),
+            message='You are already subscribed to that author'
+        ),
+    ]
+
+    def to_representation(self, instance):
+        return SubscriptionRetrieveSerializer(instance['author'], context={
+            'request': self.context.get('request')
+        }).data
+
+
+class SubscriptionRetrieveSerializer(CustomUserRetrieveSerializer):
     """Provides information about the author and their recipes"""
+    RECIPES_LIMIT = 10
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes = Recipe.objects.filter(author=obj)
-        recipes_limit = request.GET.get('recipes_limit', 3)
+        recipes_limit = request.GET.get('recipes_limit', self.RECIPES_LIMIT)
         if recipes_limit:
             recipes = recipes[:int(recipes_limit)]
             return RecipeShortListRetrieveSerializer(recipes, many=True).data
@@ -307,6 +339,9 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             'is_subscribed',
             'recipes',
             'recipes_count',
+            #
+            # 'user',
+            # 'author',
         )
         read_only_fields = (
             'email',
@@ -315,6 +350,22 @@ class SubscriptionSerializer(CustomUserRetrieveSerializer):
             'last_name',
             'is_subscribed',
         )
+
+        # def validate(self, data):
+        #     print("!!!!VALIDATION", flush=True)
+        #     if data['user'] == data['author']:
+        #         raise serializers.ValidationError("foo")
+        #     return data
+
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Subscription.objects.all(),
+        #         fields=(
+        #             'user',
+        #             'author'
+        #         )
+        #     )
+        # ]
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
