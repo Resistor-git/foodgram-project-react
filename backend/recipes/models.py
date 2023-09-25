@@ -9,11 +9,13 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=200,
         unique=True,
+        validators=[RegexValidator('^[-a-zA-Z0-9_]+$')],
         help_text='Name of the tag'
     )
     color = models.CharField(
         max_length=7,
         unique=True,
+        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
         help_text='Color code in HEX, example: #49B64E'
     )
     slug = models.SlugField(
@@ -76,13 +78,13 @@ class Recipe(models.Model):
         related_name='recipes'
     )
     cooking_time = models.PositiveSmallIntegerField(
-        help_text='Time to cook according to the recipe',
         validators=[
             MinValueValidator(
                 limit_value=1,
                 message="Cooking time can't be less than 1 minute"
             )
-        ]
+        ],
+        help_text='Time to cook according to the recipe'
     )
 
     class Meta:
@@ -103,7 +105,14 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE
     )
     amount = models.PositiveSmallIntegerField(
-        help_text='Amount of the ingredient')
+        validators=[
+            MinValueValidator(
+                limit_value=1,
+                message="Amount of ingredient can't be < 1"
+            )
+        ],
+        help_text='Amount of the ingredient'
+    )
 
     class Meta:
         constraints = [
