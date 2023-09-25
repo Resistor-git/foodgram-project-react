@@ -2,6 +2,7 @@ import base64
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.db import transaction
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -46,7 +47,7 @@ class CustomUserRetrieveSerializer(UserSerializer):
         """
         current_user = self.context.get('request').user
         if current_user.is_authenticated:
-            return obj.following.filter(user=current_user).exists()
+            return obj.following.filter(user=current_user).exists()  # а ести obj.follower без фильтра... подумать
         return False
 
     class Meta:
@@ -127,6 +128,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
+    @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients', None)
         tags = validated_data.pop('tags', None)
@@ -139,6 +141,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'Ingredients or tags are not provided'
         )
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Updates the recipe.
         Partial update is possible, so ingredients and tags can be None"""
@@ -227,10 +230,15 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     def get_is_favorited(self, obj):
-        if not self.context.get('request').user.is_authenticated:
-            return False
+        """
+          Returns True if the recipe is in favorites of the current user.
+          obj is the recipe (Recipe instance).
+          Anonymous user can not have favorites, so func returns False in this case.
+          """
         current_user = self.context.get('request').user
-        return Favorite.objects.filter(user=current_user, recipe=obj).exists()
+        if current_user.is_authenticated:
+            return obj.favorites.filter(user=current_user).exists()
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         if not self.context.get('request').user.is_authenticated:
