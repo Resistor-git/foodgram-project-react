@@ -286,13 +286,6 @@ class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
 class SubscriptionCreateDestroySerializer(serializers.ModelSerializer):
     """Serialization and validation of subscriptions."""
 
-    class Meta:
-        model = Subscription
-        fields = (
-            'user',
-            'author',
-        )
-
     def validate(self, data):
         if self.context['request'].method == 'POST':
             if data['user'] == data['author']:
@@ -309,6 +302,13 @@ class SubscriptionCreateDestroySerializer(serializers.ModelSerializer):
         return SubscriptionRetrieveSerializer(instance['author'], context={
             'request': self.context.get('request')
         }).data
+
+    class Meta:
+        model = Subscription
+        fields = (
+            'user',
+            'author',
+        )
 
 
 class SubscriptionRetrieveSerializer(CustomUserRetrieveSerializer):
@@ -359,14 +359,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
             instance['recipe'], context=context
         ).data
 
-    class Meta:
-        model = Favorite
-        fields = (
-            'id',
-            'user',
-            'recipe'
-        )
-
     def validate(self, data):
         if self.context['request'].method == 'POST':
             if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
@@ -376,6 +368,14 @@ class FavoriteSerializer(serializers.ModelSerializer):
                 return data
             raise serializers.ValidationError('The recipe is not in favorites')
         return data
+
+    class Meta:
+        model = Favorite
+        fields = (
+            'id',
+            'user',
+            'recipe'
+        )
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -393,6 +393,16 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(
             f'Ingredient with id {value.id} does not exist'
         )
+
+    def validate(self, data):
+        if self.context['request'].method == 'POST':
+            if ShoppingCart.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+                raise serializers.ValidationError('The recipe is already in shopping cart')
+            return data
+        if self.context['request'].method == 'DELETE':
+            if ShoppingCart.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+                return data
+            raise serializers.ValidationError('The recipe is not in shopping cart')
 
     class Meta:
         model = ShoppingCart
