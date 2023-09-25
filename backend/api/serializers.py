@@ -41,11 +41,11 @@ class CustomUserRetrieveSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         """
         Returns True if current user is subscribed to the author of recipe.
-        obj is the author.
+        obj is the author (CustomUser instance).
         Anonymous user can not subscribe, so func returns False in this case.
         """
-        if self.context.get('request').user.is_authenticated:
-            current_user = self.context.get('request').user
+        current_user = self.context.get('request').user
+        if current_user.is_authenticated:
             return obj.following.filter(user=current_user).exists()
         return False
 
