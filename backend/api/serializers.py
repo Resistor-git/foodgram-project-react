@@ -367,21 +367,15 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'recipe'
         )
 
-    # def validate(self, data):
-    #     if self.context['request'].method == 'DELETE':
-    #         if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
-    #             return data
-    #         raise serializers.ValidationError('The recipe is not in favorites')
-
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Favorite.objects.all(),
-                fields=(
-                    'user',
-                    'recipe'
-                )
-            )
-        ]
+    def validate(self, data):
+        if self.context['request'].method == 'POST':
+            if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+                raise serializers.ValidationError('Already in favorites')
+        if self.context['request'].method == 'DELETE':
+            if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+                return data
+            raise serializers.ValidationError('The recipe is not in favorites')
+        return data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):

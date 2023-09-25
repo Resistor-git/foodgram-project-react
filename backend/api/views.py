@@ -79,13 +79,6 @@ class CustomUserViewSet(UserViewSet):
         )
 
         if request.method == 'POST':
-            # serializer = SubscriptionCreateDestroySerializer(
-            #     data={
-            #         'user': user.pk,
-            #         'author': author.pk
-            #     },
-            #     context={'request': request}
-            # )
             if serializer.is_valid(raise_exception=True):
                 Subscription.objects.create(user=user, author=author)
                 return Response(
@@ -95,13 +88,6 @@ class CustomUserViewSet(UserViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if request.method == 'DELETE':
-            # serializer = SubscriptionCreateDestroySerializer(
-            #     data={
-            #         'user': user.pk,
-            #         'author': author.pk
-            #     },
-            #     context={'request': request}
-            # )
             if serializer.is_valid(raise_exception=True):
                 Subscription.objects.get(user=user, author=author).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -153,29 +139,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk):
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
+        serializer = FavoriteSerializer(
+            data={'recipe': recipe.pk},
+            context={'request': request}
+        )
         if request.method == 'POST':
-            if recipe:
-                serializer = FavoriteSerializer(
-                    data={'recipe': recipe.pk},
-                    context={'request': request}
-                )
-                if serializer.is_valid(raise_exception=True):
-                    Favorite.objects.create(user=user, recipe=recipe)
-                return Response(
-                    serializer.data,
-                    status=status.HTTP_201_CREATED
-                )
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            if serializer.is_valid(raise_exception=True):
+                Favorite.objects.create(user=user, recipe=recipe)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
         if request.method == 'DELETE':
-            if Favorite.objects.filter(user=user, recipe=recipe).exists():
+            if serializer.is_valid(raise_exception=True):
                 Favorite.objects.get(user=user, recipe=recipe).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(
-                    {'errors': 'The recipe does not exist'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(
         methods=['POST', 'DELETE'],
@@ -186,6 +167,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk):
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
+
         if request.method == 'POST':
             if recipe:
                 serializer = ShoppingCartSerializer(
@@ -211,6 +193,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     {'errors': 'The recipe does not exist'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
         if request.method == 'DELETE':
             if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
                 ShoppingCart.objects.get(user=user, recipe=recipe).delete()
