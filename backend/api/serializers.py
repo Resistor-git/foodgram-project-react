@@ -3,6 +3,7 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -282,7 +283,8 @@ class RecipeShortListRetrieveSerializer(serializers.ModelSerializer):
         )
 
 
-class SubscriptionCreateSerializer(serializers.ModelSerializer):
+class SubscriptionCreateDestroySerializer(serializers.ModelSerializer):
+    """Serialization and validation of subscriptions."""
 
     class Meta:
         model = Subscription
@@ -292,17 +294,16 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        if data['user'] == data['author']:
-            raise serializers.ValidationError('Can not subscribe to yourself')
-        return data
-
-    validators = [
-        UniqueTogetherValidator(
-            queryset=Subscription.objects.all(),
-            fields=('user', 'author',),
-            message='You are already subscribed to that author'
-        ),
-    ]
+        if self.context['request'].method == 'POST':
+            if data['user'] == data['author']:
+                raise serializers.ValidationError('Can not subscribe to yourself')
+            if Subscription.objects.filter(user=data['user'], author=data['author']).exists():
+                raise serializers.ValidationError('You are already subscribed to that author')
+            return data
+        if self.context['request'].method == 'DELETE':
+            if Subscription.objects.filter(user=data['user'], author=data['author']).exists():
+                return data
+            raise serializers.ValidationError('Not subscribed')
 
     def to_representation(self, instance):
         return SubscriptionRetrieveSerializer(instance['author'], context={
@@ -339,9 +340,6 @@ class SubscriptionRetrieveSerializer(CustomUserRetrieveSerializer):
             'is_subscribed',
             'recipes',
             'recipes_count',
-            #
-            # 'user',
-            # 'author',
         )
         read_only_fields = (
             'email',
@@ -350,22 +348,6 @@ class SubscriptionRetrieveSerializer(CustomUserRetrieveSerializer):
             'last_name',
             'is_subscribed',
         )
-
-        # def validate(self, data):
-        #     print("!!!!VALIDATION", flush=True)
-        #     if data['user'] == data['author']:
-        #         raise serializers.ValidationError("foo")
-        #     return data
-
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Subscription.objects.all(),
-        #         fields=(
-        #             'user',
-        #             'author'
-        #         )
-        #     )
-        # ]
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

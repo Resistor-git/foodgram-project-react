@@ -30,7 +30,7 @@ from api.serializers import (
     RecipeCreateSerializer,
     IngredientSerializer,
     TagSerializer,
-    SubscriptionCreateSerializer,
+    SubscriptionCreateDestroySerializer,
     SubscriptionRetrieveSerializer,
     CustomUserRetrieveSerializer,
     FavoriteSerializer,
@@ -66,52 +66,39 @@ class CustomUserViewSet(UserViewSet):
         methods=['POST', 'DELETE'],
         detail=True,
         permission_classes=[permissions.IsAuthenticatedOrReadOnly],
-        # serializer_class=SubscriptionSerializer,  # ???
     )
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
-            if User.objects.filter(id=id).exists():  # в принципе get_object_or_404 уже отловил это
-                serializer = SubscriptionCreateSerializer(
-                    data={
-                        'user': user.pk,
-                        'author': author.pk
-                    },
-                    context={'request': request}
+            serializer = SubscriptionCreateDestroySerializer(
+                data={
+                    'user': user.pk,
+                    'author': author.pk
+                },
+                context={'request': request}
+            )
+            if serializer.is_valid(raise_exception=True):
+                Subscription.objects.create(user=user, author=author)
+                return Response(
+                    data=serializer.data,
+                    status=status.HTTP_201_CREATED
                 )
-                serializer.is_valid(raise_exception=True)
-                # if user == author:
-                #     error_message = {'error': 'Can not subscribe to yourself'}
-                #     return Response(
-                #         data=error_message,
-                #         status=status.HTTP_400_BAD_REQUEST
-                #     )
-                # if Subscription.objects.filter(
-                #         user=user, author=author
-                # ).exists():
-                #     error_message = {
-                #         'error': 'You are already subscribed to that author'
-                #     }
-                #     return Response(
-                #         data=error_message, status=status.HTTP_400_BAD_REQUEST
-                #     )
-                # serializer = self.get_serializer(author)
-                if serializer.is_valid:
-                    Subscription.objects.create(user=user, author=author)
-                    return Response(
-                        data=serializer.data,
-                        status=status.HTTP_201_CREATED
-                    )
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         if request.method == 'DELETE':
-            if Subscription.objects.filter(user=user, author=author).exists():
+            serializer = SubscriptionCreateDestroySerializer(
+                data={
+                    'user': user.pk,
+                    'author': author.pk
+                },
+                context={'request': request}
+            )
+            if serializer.is_valid(raise_exception=True):
                 Subscription.objects.get(user=user, author=author).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         methods=['GET'],
