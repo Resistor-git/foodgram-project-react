@@ -70,15 +70,22 @@ class CustomUserViewSet(UserViewSet):
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
+        serializer = SubscriptionCreateDestroySerializer(
+            data={
+                'user': user.pk,
+                'author': author.pk
+            },
+            context={'request': request}
+        )
 
         if request.method == 'POST':
-            serializer = SubscriptionCreateDestroySerializer(
-                data={
-                    'user': user.pk,
-                    'author': author.pk
-                },
-                context={'request': request}
-            )
+            # serializer = SubscriptionCreateDestroySerializer(
+            #     data={
+            #         'user': user.pk,
+            #         'author': author.pk
+            #     },
+            #     context={'request': request}
+            # )
             if serializer.is_valid(raise_exception=True):
                 Subscription.objects.create(user=user, author=author)
                 return Response(
@@ -88,13 +95,13 @@ class CustomUserViewSet(UserViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if request.method == 'DELETE':
-            serializer = SubscriptionCreateDestroySerializer(
-                data={
-                    'user': user.pk,
-                    'author': author.pk
-                },
-                context={'request': request}
-            )
+            # serializer = SubscriptionCreateDestroySerializer(
+            #     data={
+            #         'user': user.pk,
+            #         'author': author.pk
+            #     },
+            #     context={'request': request}
+            # )
             if serializer.is_valid(raise_exception=True):
                 Subscription.objects.get(user=user, author=author).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -152,8 +159,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     data={'recipe': recipe.pk},
                     context={'request': request}
                 )
-                serializer.is_valid(raise_exception=True)
-                if serializer.is_valid:
+                if serializer.is_valid(raise_exception=True):
                     Favorite.objects.create(user=user, recipe=recipe)
                 return Response(
                     serializer.data,

@@ -366,6 +366,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'user',
             'recipe'
         )
+
+    # def validate(self, data):
+    #     if self.context['request'].method == 'DELETE':
+    #         if Favorite.objects.filter(user=data['user'], recipe=data['recipe']).exists():
+    #             return data
+    #         raise serializers.ValidationError('The recipe is not in favorites')
+
         validators = [
             UniqueTogetherValidator(
                 queryset=Favorite.objects.all(),
