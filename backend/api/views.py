@@ -65,7 +65,7 @@ class CustomUserViewSet(UserViewSet):
     def get_queryset(self):
         queryset = User.objects.all()
         return queryset
-#
+
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
