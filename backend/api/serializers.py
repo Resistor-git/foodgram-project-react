@@ -47,10 +47,8 @@ class CustomUserRetrieveSerializer(UserSerializer):
         Anonymous user can not subscribe, so func returns False in this case.
         """
         current_user = self.context.get('request').user
-        return (
-                current_user.is_authenticated
-                and obj.following.filter(user=current_user).exists()
-        )
+        return (current_user.is_authenticated
+                and obj.following.filter(user=current_user).exists())
 
     class Meta:
         model = User
@@ -239,10 +237,8 @@ class RecipeListRetrieveSerializer(serializers.ModelSerializer):
           so func returns False in this case.
           """
         current_user = self.context.get('request').user
-        return (
-                current_user.is_authenticated
-                and obj.favorites.filter(user=current_user).exists()
-        )
+        return (current_user.is_authenticated
+                and obj.favorites.filter(user=current_user).exists())
 
     def get_is_in_shopping_cart(self, obj):
         """
