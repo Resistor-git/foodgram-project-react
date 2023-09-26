@@ -25,7 +25,6 @@ jobs:
   build_backend_and_push_to_docker_hub:
     name: Push backend Docker image to DockerHub
     runs-on: ubuntu-22.04
-#    needs: tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
