@@ -53,14 +53,18 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = CustomLimitPagination
 
     def get_serializer_class(self):
         if (self.request.method in permissions.SAFE_METHODS
                 and self.request.user.is_authenticated):
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+        return queryset
 
     @action(
         methods=['POST', 'DELETE'],
