@@ -39,10 +39,11 @@ from api.serializers import (
 from api.my_permissions import (
     IsAuthorOrReadOnly,
     IsAdminOrReadOnly,
+    IsAuthenticatedOrListOnly,
 )
 from api.filters import (
     RecipeFilter,
-    IngredientFilter
+    IngredientFilter,
 )
 
 from api.paginators import (
@@ -61,6 +62,11 @@ class CustomUserViewSet(UserViewSet):
                 and self.request.user.is_authenticated):
             return CustomUserRetrieveSerializer
         return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action == 'me' and self.request.user.is_anonymous:
+            return [IsAuthenticatedOrListOnly()]
+        return super().get_permissions()
 
     def get_queryset(self):
         queryset = User.objects.all()
