@@ -68,6 +68,8 @@ class CustomUserViewSet(UserViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
+        # source code for UserViewSet returns empty queryset for
+        # anonymous user, had to override it
         queryset = User.objects.all()
         return queryset
 

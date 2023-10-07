@@ -94,17 +94,3 @@ py manage.py runserver
 
 ## Автор
 Resistor ([GitHub](https://github.com/Resistor-git/))
-
-
-# Информация для ревьювера:
-## Данные сервера:
-login: yc-user
-passphrase: NRjeSf
-ip: 158.160.1.27
-
-## Адрес в интернете
-https://praktikum16foodgram.crabdance.com
-
-## Данные администратора
-Логин: admin
-Пароль: adminfoodgram
