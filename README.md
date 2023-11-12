@@ -1,6 +1,5 @@
 # Foodgram
 #### Foodgram - это проект позволяющий создавать рецепты и публиковать их.
-Web-адрес проекта: https://praktikum16foodgram.crabdance.com
 
 Foodgram имеет несколько ключевых особенностей, включая:
 
