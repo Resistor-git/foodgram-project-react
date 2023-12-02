@@ -1,7 +1,7 @@
-# Foodgram
-#### Foodgram - это проект позволяющий создавать рецепты и публиковать их.
+# YourRecipes
+#### YourRecipes - это проект позволяющий создавать рецепты и публиковать их.
 
-Foodgram имеет несколько ключевых особенностей, включая:
+YourRecipes имеет несколько ключевых особенностей, включая:
 
 - Список избранных рецептов.
 - Подписка на авторов.
@@ -16,11 +16,11 @@ Foodgram имеет несколько ключевых особенностей
 ## Как запустить проект локально (только бекэнд)
 Клонировать репозиторий:
 
-`https://github.com/Resistor-git/foodgram-project-react.git`
+`https://github.com/Resistor-git/your_recipes.git`
 
 Перейти в репозиторий в командной строке:
 
-`cd foodgram-project-react`
+`cd your_recipes`
 
 Создать и активировать виртуальное окружение:
 
@@ -58,8 +58,8 @@ py manage.py runserver
 Установите и запустите [Docker](https://www.docker.com/products/docker-desktop/)
 
 Создайте в корне проекта файл .env и заполните его следующими данными:
-* POSTGRES_DB=foodgram
-* POSTGRES_USER=foodgram_user
+* POSTGRES_DB=your_recipes
+* POSTGRES_USER=your_recipes_user
 * POSTGRES_PASSWORD=пароль от базы данных на ваш выбор
 * DB_HOST=db
 * DB_PORT=5432
